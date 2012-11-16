@@ -13,9 +13,8 @@ dnl [  --with-graphdat             Include graphdat support])
 
 dnl Otherwise use enable:
 
-dnl PHP_ARG_ENABLE(graphdat, whether to enable graphdat support,
-dnl Make sure that the comment is aligned:
-dnl [  --enable-graphdat           Enable graphdat support])
+PHP_ARG_ENABLE(graphdat, whether to enable Graphdat support,
+			  [  --enable-graphdat           Enable Graphdat support])
 
 if test "$PHP_GRAPHDAT" != "no"; then
   dnl Write more examples of tests here...

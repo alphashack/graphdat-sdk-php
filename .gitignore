@@ -33,3 +33,4 @@
 /Makefile
 /Makefile.fragments
 /Makefile.objects
+/.libs/
