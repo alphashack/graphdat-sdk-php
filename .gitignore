@@ -25,3 +25,11 @@
 /missing
 /mkinstalldirs
 /run-tests.php
+/.deps
+/config.h
+/config.nice
+/config.status
+/libtool
+/Makefile
+/Makefile.fragments
+/Makefile.objects
