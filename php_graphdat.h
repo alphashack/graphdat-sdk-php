@@ -47,12 +47,13 @@ PHP_FUNCTION(confirm_graphdat_compiled);	/* For testing, remove later. */
 /* 
   	Declare any global variables you may need between the BEGIN
 	and END macros here:     
-
+ */
 ZEND_BEGIN_MODULE_GLOBALS(graphdat)
-	long  global_value;
-	char *global_string;
+	long  socketPort;
+	char *socketFile;
+  bool debug;
 ZEND_END_MODULE_GLOBALS(graphdat)
-*/
+
 
 /* In every utility function you add that needs to use variables 
    in php_graphdat_globals, call TSRMLS_FETCH(); after declaring other 

@@ -27,9 +27,7 @@
 #include "ext/standard/info.h"
 #include "php_graphdat.h"
 
-/* If you declare any globals in php_graphdat.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(graphdat)
-*/
 
 /* True global resources - no need for thread safety here */
 static int le_graphdat;
@@ -70,32 +68,32 @@ ZEND_GET_MODULE(graphdat)
 
 /* {{{ PHP_INI
  */
-/* Remove comments and fill if you need to have entries in php.ini
+
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("graphdat.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_graphdat_globals, graphdat_globals)
-    STD_PHP_INI_ENTRY("graphdat.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.socketFile", "/tmp/gd.agent.sock", PHP_INI_ALL, OnUpdateString, socketFile, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.socketPort", "26873", PHP_INI_ALL, OnUpdateLong, socketPort, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.debug", "false", PHP_INI_ALL, OnUpdateBool, debug, zend_graphdat_globals, graphdat_globals)
 PHP_INI_END()
-*/
+
 /* }}} */
 
 /* {{{ php_graphdat_init_globals
  */
-/* Uncomment this function if you have INI entries
 static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals)
 {
-	graphdat_globals->global_value = 0;
-	graphdat_globals->global_string = NULL;
+	graphdat_globals->socketFile = 26873;
+	graphdat_globals->socketPort = "/tmp/gd.agent.sock";
+    graphdat_globals->debug = false;
 }
-*/
+
 /* }}} */
 
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(graphdat)
 {
-	/* If you have INI entries, uncomment these lines 
+    ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -104,9 +102,7 @@ PHP_MINIT_FUNCTION(graphdat)
  */
 PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
-	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -134,12 +130,10 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
 PHP_MINFO_FUNCTION(graphdat)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "graphdat support", "enabled");
+	php_info_print_table_header(2, "graphdat", "enabled");
 	php_info_print_table_end();
 
-	/* Remove comments if you have entries in php.ini
 	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
 
