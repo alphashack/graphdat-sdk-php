@@ -55,7 +55,7 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
     bool debug;
     // items that are used when running
     int socketFD;
-    bool isDirty;
+    char isDirty;
     struct timeval requestStartTime;
 ZEND_END_MODULE_GLOBALS(graphdat)
 
