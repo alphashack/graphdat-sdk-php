@@ -29,7 +29,7 @@
 #include "sockets.h"
 #include "msgpack.h"
 
-#define timeValToMs(a) ((a.tv_sec * 1000) + (a.tv_usec / 1000))
+#define timeValToMs(a) (((double)a.tv_sec * 1000.0f) + ((double)a.tv_usec / 1000.0f))
 
 ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 
@@ -133,11 +133,11 @@ PHP_RINIT_FUNCTION(graphdat)
 PHP_RSHUTDOWN_FUNCTION(graphdat)
 {
     HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
-    if(GRAPHDAT_GLOBALS(socketFD) == -1)
-    {
-        DEBUG("Graphdat :: not connected to agent, skipping \n");
-       return SUCCESS;
-    }
+//    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+//    {
+//        DEBUG("Graphdat :: not connected to agent, skipping \n");
+//       return SUCCESS;
+//    }
     if(zend_hash_exists(serverVars, "REQUEST_URI", sizeof("REQUEST_URI")) == 0)
     {
         DEBUG("Graphdat :: No value for REQUEST_URI skipping\n");
@@ -155,8 +155,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     zval **requestMethodData;
     
     gettimeofday(&timeNow, NULL);
-    timeNow = GRAPHDAT_GLOBALS(requestStartTime);
-    totalTime = timeValToMs(timeNow) - timeValToMs(timeNow);
+    totalTime = timeValToMs(timeNow) - timeValToMs(GRAPHDAT_GLOBALS(requestStartTime));
     
     if(zend_hash_find(serverVars, "REQUEST_URI", sizeof("REQUEST_URI"), (void **)&requestUriData) == FAILURE)
     {
@@ -177,6 +176,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     requestMethodLen = Z_STRLEN_PP(requestMethodData);
     
     requestLineItemLen = 1 + requestMethodLen + requestUriLen;
+    requestLineItem = emalloc(requestLineItemLen);
     sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
     
     zend_printf("Request %s took %fms\n", requestLineItem, totalTime);
@@ -202,8 +202,16 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     len[2] = buffer->size >> 8;
     len[3] = buffer->size;
     
+    
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        DEBUG("Graphdat :: not connected to agent, skipping \n");
+    }
+    else
+    {
     socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
     socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
+    }
     
     msgpack_sbuffer_free(buffer);
     msgpack_packer_free(pk);
