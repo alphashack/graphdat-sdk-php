@@ -77,7 +77,7 @@ ZEND_END_MODULE_GLOBALS(graphdat)
 #endif
 
 
-#define DEBUG(str) if(GRAPHDAT_GLOBALS(debug)) zend_printf(str)
+#define DEBUG(str, ...) if(GRAPHDAT_GLOBALS(debug)) zend_error(E_NOTICE, str, ##__VA_ARGS__)
 
 #endif	/* PHP_GRAPHDAT_H */
 
