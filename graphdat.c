@@ -26,6 +26,10 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_graphdat.h"
+#include "sockets.h"
+#include "msgpack.h"
+
+#define timeValToMs(a) ((a.tv_sec * 1000) + (a.tv_usec / 1000))
 
 ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 
@@ -81,9 +85,8 @@ PHP_INI_END()
  */
 static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals)
 {
-	graphdat_globals->socketFile = 26873;
-	graphdat_globals->socketPort = "/tmp/gd.agent.sock";
-    graphdat_globals->debug = false;
+    graphdat_globals->debug = true;
+    graphdat_globals->socketFD = 0;
 }
 
 /* }}} */
@@ -94,6 +97,9 @@ PHP_MINIT_FUNCTION(graphdat)
 {
     ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
+
+    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort));
+
 	return SUCCESS;
 }
 /* }}} */
@@ -103,6 +109,9 @@ PHP_MINIT_FUNCTION(graphdat)
 PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
 	UNREGISTER_INI_ENTRIES();
+
+    closeSocket(GRAPHDAT_GLOBALS(socketFD));
+
 	return SUCCESS;
 }
 /* }}} */
@@ -112,6 +121,8 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
  */
 PHP_RINIT_FUNCTION(graphdat)
 {
+    gettimeofday(&GRAPHDAT_GLOBALS(requestStartTime), NULL);
+
 	return SUCCESS;
 }
 /* }}} */
@@ -121,9 +132,101 @@ PHP_RINIT_FUNCTION(graphdat)
  */
 PHP_RSHUTDOWN_FUNCTION(graphdat)
 {
+    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        DEBUG("Graphdat :: not connected to agent, skipping \n");
+       return SUCCESS;
+    }
+    if(zend_hash_exists(serverVars, "REQUEST_URI", sizeof("REQUEST_URI")) == 0)
+    {
+        DEBUG("Graphdat :: No value for REQUEST_URI skipping\n");
+        return SUCCESS;
+    }
+    char* requestUri;
+    int requestUriLen;
+    char* requestMethod;
+    int requestMethodLen;
+    char* requestLineItem;
+    int requestLineItemLen;
+    struct timeval timeNow;
+    float totalTime;
+    zval **requestUriData;
+    zval **requestMethodData;
+    
+    gettimeofday(&timeNow, NULL);
+    timeNow = GRAPHDAT_GLOBALS(requestStartTime);
+    totalTime = timeValToMs(timeNow) - timeValToMs(timeNow);
+    
+    if(zend_hash_find(serverVars, "REQUEST_URI", sizeof("REQUEST_URI"), (void **)&requestUriData) == FAILURE)
+    {
+        // always bail successfully
+        DEBUG("Graphdat :: failed getting value for REQUEST_URI skipping\n");
+        return SUCCESS;
+    }
+    requestUri = Z_STRVAL_PP(requestUriData);
+    requestUriLen = Z_STRLEN_PP(requestUriData);
+    
+    if(zend_hash_find(serverVars, "REQUEST_METHOD", sizeof("REQUEST_METHOD"), (void **)&requestMethodData) == FAILURE)
+    {
+        // always bail successfully
+        DEBUG("Graphdat :: failed getting value for REQUEST_METHOD skipping\n");
+        return SUCCESS;
+    }
+    requestMethod = Z_STRVAL_PP(requestMethodData);
+    requestMethodLen = Z_STRLEN_PP(requestMethodData);
+    
+    requestLineItemLen = 1 + requestMethodLen + requestUriLen;
+    sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
+    
+    zend_printf("Request %s took %fms\n", requestLineItem, totalTime);
+    
+    msgpack_sbuffer* buffer = msgpack_sbuffer_new();
+    msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
+    // create map with 2 items (route, responsetime)
+    msgpack_pack_map(pk, 2);
+    // maps are object then key
+    // route
+    msgpack_pack_raw(pk, requestLineItemLen);
+    msgpack_pack_raw_body(pk, requestLineItem, requestLineItemLen);
+    msgpack_pack_raw(pk, sizeof("route"));
+    msgpack_pack_raw_body(pk, "route", sizeof("route"));
+    // response time
+    msgpack_pack_double(pk, totalTime);
+    msgpack_pack_raw(pk, sizeof("responsetime"));
+    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime"));
+    
+    unsigned char len[4];
+    len[0] = buffer->size >> 24;
+    len[1] = buffer->size >> 16;
+    len[2] = buffer->size >> 8;
+    len[3] = buffer->size;
+    
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
+    
+    msgpack_sbuffer_free(buffer);
+    msgpack_packer_free(pk);
+
+    
+/*
+Need to send the following message to the agent with this info
+    var item = {
+        type: "Sample",
+        source: "HTTP",
+        route: sample.Method + ' ' + sample.URL,
+        responsetime: sample._ms,
+        timestamp: sample._ts,
+        cputime: sample['CPU time (ms)'],
+        pid: pid,
+        context: sample.Context
+    };
+ */
+
 	return SUCCESS;
 }
 /* }}} */
+
 
 /* {{{ PHP_MINFO_FUNCTION
  */

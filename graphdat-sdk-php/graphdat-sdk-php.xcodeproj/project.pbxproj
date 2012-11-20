@@ -1,0 +1,152 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		B3B3F89B165B09FC00487385 /* sockets.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sockets.c; sourceTree = "<group>"; };
+		B3B3F89C165B09FC00487385 /* sockets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sockets.h; sourceTree = "<group>"; };
+		B3B3F89D165B09FC00487385 /* graphdat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = graphdat.c; path = ../graphdat.c; sourceTree = "<group>"; };
+		B3B3F89E165B09FC00487385 /* php_graphdat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = php_graphdat.h; path = ../php_graphdat.h; sourceTree = "<group>"; };
+		B3B3F89F165B09FC00487385 /* config.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = config.m4; path = ../config.m4; sourceTree = "<group>"; };
+		B3B3F8A0165B09FC00487385 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		B3B3F8A1165B09FC00487385 /* config.w32 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = config.w32; path = ../config.w32; sourceTree = "<group>"; };
+		B3B3F8A3165B09FC00487385 /* 001.phpt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 001.phpt; sourceTree = "<group>"; };
+		B3B3F8A4165B09FC00487385 /* CREDITS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CREDITS; path = ../CREDITS; sourceTree = "<group>"; };
+		B3B3F8A5165B09FC00487385 /* EXPERIMENTAL */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = EXPERIMENTAL; path = ../EXPERIMENTAL; sourceTree = "<group>"; };
+		B3B3F8A6165B09FC00487385 /* graphdat.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = graphdat.php; path = ../graphdat.php; sourceTree = "<group>"; };
+		B3B3F8A9165B192200487385 /* msgpack */ = {isa = PBXFileReference; lastKnownFileType = folder; path = msgpack; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		B3B3F88D165B092600487385 = {
+			isa = PBXGroup;
+			children = (
+				B3B3F89A165B09FC00487385 /* src */,
+				B3B3F89D165B09FC00487385 /* graphdat.c */,
+				B3B3F89E165B09FC00487385 /* php_graphdat.h */,
+				B3B3F89F165B09FC00487385 /* config.m4 */,
+				B3B3F8A0165B09FC00487385 /* README.md */,
+				B3B3F8A1165B09FC00487385 /* config.w32 */,
+				B3B3F8A2165B09FC00487385 /* tests */,
+				B3B3F8A4165B09FC00487385 /* CREDITS */,
+				B3B3F8A5165B09FC00487385 /* EXPERIMENTAL */,
+				B3B3F8A6165B09FC00487385 /* graphdat.php */,
+			);
+			sourceTree = "<group>";
+		};
+		B3B3F89A165B09FC00487385 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B3B3F8A9165B192200487385 /* msgpack */,
+				B3B3F89B165B09FC00487385 /* sockets.c */,
+				B3B3F89C165B09FC00487385 /* sockets.h */,
+			);
+			name = src;
+			path = ../src;
+			sourceTree = "<group>";
+		};
+		B3B3F8A2165B09FC00487385 /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				B3B3F8A3165B09FC00487385 /* 001.phpt */,
+			);
+			name = tests;
+			path = ../tests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		B3B3F88F165B092600487385 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = "Sugendran Ganess";
+			};
+			buildConfigurationList = B3B3F892165B092600487385 /* Build configuration list for PBXProject "graphdat-sdk-php" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = B3B3F88D165B092600487385;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		B3B3F895165B092600487385 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		B3B3F896165B092600487385 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B3B3F892165B092600487385 /* Build configuration list for PBXProject "graphdat-sdk-php" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B3B3F895165B092600487385 /* Debug */,
+				B3B3F896165B092600487385 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B3B3F88F165B092600487385 /* Project object */;
+}

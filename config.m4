@@ -1,18 +1,6 @@
 dnl $Id$
 dnl config.m4 for extension graphdat
 
-dnl Comments in this file start with the string 'dnl'.
-dnl Remove where necessary. This file will not work
-dnl without editing.
-
-dnl If your extension references something external, use with:
-
-dnl PHP_ARG_WITH(graphdat, for graphdat support,
-dnl Make sure that the comment is aligned:
-dnl [  --with-graphdat             Include graphdat support])
-
-dnl Otherwise use enable:
-
 PHP_ARG_ENABLE(graphdat, whether to enable Graphdat support,
 			  [  --enable-graphdat           Enable Graphdat support])
 
@@ -40,7 +28,8 @@ if test "$PHP_GRAPHDAT" != "no"; then
   dnl fi
 
   dnl # --with-graphdat -> add include path
-  dnl PHP_ADD_INCLUDE($GRAPHDAT_DIR/include)
+  PHP_ADD_INCLUDE(src)
+  PHP_ADD_INCLUDE(src/msgpack)
 
   dnl # --with-graphdat -> check for lib and symbol presence
   dnl LIBNAME=graphdat # you may want to change this
@@ -58,5 +47,5 @@ if test "$PHP_GRAPHDAT" != "no"; then
   dnl
   dnl PHP_SUBST(GRAPHDAT_SHARED_LIBADD)
 
-  PHP_NEW_EXTENSION(graphdat, graphdat.c, $ext_shared)
+  PHP_NEW_EXTENSION(graphdat, [graphdat.c src/*.c src/msgpack/*.c], $ext_shared)
 fi

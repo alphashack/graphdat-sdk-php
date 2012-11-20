@@ -26,3 +26,4 @@ References
 http://devzone.zend.com/303/extension-writing-part-i-introduction-to-php-and-zend/
 http://www.tuxradar.com/practicalphp/20/3/0
 http://www.php.net/manual/en/internals2.php
+http://php.net/manual/en/internals2.ze1.zendapi.php

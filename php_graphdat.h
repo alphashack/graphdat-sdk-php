@@ -21,6 +21,8 @@
 #ifndef PHP_GRAPHDAT_H
 #define PHP_GRAPHDAT_H
 
+#include <sys/time.h>
+
 extern zend_module_entry graphdat_module_entry;
 #define phpext_graphdat_ptr &graphdat_module_entry
 
@@ -32,9 +34,7 @@ extern zend_module_entry graphdat_module_entry;
 #	define PHP_GRAPHDAT_API
 #endif
 
-#ifdef ZTS
-#include "TSRM.h"
-#endif
+
 
 PHP_MINIT_FUNCTION(graphdat);
 PHP_MSHUTDOWN_FUNCTION(graphdat);
@@ -49,9 +49,14 @@ PHP_FUNCTION(confirm_graphdat_compiled);	/* For testing, remove later. */
 	and END macros here:     
  */
 ZEND_BEGIN_MODULE_GLOBALS(graphdat)
-	long  socketPort;
-	char *socketFile;
-  bool debug;
+  // items for settings
+	long socketPort;
+    char *socketFile;
+    bool debug;
+    // items that are used when running
+    int socketFD;
+    bool isDirty;
+    struct timeval requestStartTime;
 ZEND_END_MODULE_GLOBALS(graphdat)
 
 
@@ -66,10 +71,13 @@ ZEND_END_MODULE_GLOBALS(graphdat)
 */
 
 #ifdef ZTS
-#define GRAPHDAT_G(v) TSRMG(graphdat_globals_id, zend_graphdat_globals *, v)
+#define GRAPHDAT_GLOBALS(v) TSRMG(graphdat_globals_id, zend_graphdat_globals *, v)
 #else
-#define GRAPHDAT_G(v) (graphdat_globals.v)
+#define GRAPHDAT_GLOBALS(v) (graphdat_globals.v)
 #endif
+
+
+#define DEBUG(str) if(GRAPHDAT_GLOBALS(debug)) zend_printf(str)
 
 #endif	/* PHP_GRAPHDAT_H */
 
