@@ -133,11 +133,11 @@ PHP_RINIT_FUNCTION(graphdat)
 PHP_RSHUTDOWN_FUNCTION(graphdat)
 {
     HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
-//    if(GRAPHDAT_GLOBALS(socketFD) == -1)
-//    {
-//        DEBUG("Graphdat :: not connected to agent, skipping \n");
-//       return SUCCESS;
-//    }
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        DEBUG("Graphdat :: not connected to agent, skipping \n");
+       return SUCCESS;
+    }
     if(zend_hash_exists(serverVars, "REQUEST_URI", sizeof("REQUEST_URI")) == 0)
     {
         DEBUG("Graphdat :: No value for REQUEST_URI skipping\n");
@@ -202,16 +202,8 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     len[2] = buffer->size >> 8;
     len[3] = buffer->size;
     
-    
-    if(GRAPHDAT_GLOBALS(socketFD) == -1)
-    {
-        DEBUG("Graphdat :: not connected to agent, skipping \n");
-    }
-    else
-    {
     socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
     socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
-    }
     
     msgpack_sbuffer_free(buffer);
     msgpack_packer_free(pk);
