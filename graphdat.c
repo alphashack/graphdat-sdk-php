@@ -85,7 +85,7 @@ PHP_INI_END()
  */
 static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals)
 {
-    graphdat_globals->debug = true;
+    graphdat_globals->debug = 1;
     graphdat_globals->socketFD = 0;
 }
 

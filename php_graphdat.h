@@ -52,10 +52,10 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
   // items for settings
 	long socketPort;
     char *socketFile;
-    char debug;
+    int debug;
     // items that are used when running
     int socketFD;
-    char isDirty;
+    int isDirty;
     struct timeval requestStartTime;
 ZEND_END_MODULE_GLOBALS(graphdat)
 
