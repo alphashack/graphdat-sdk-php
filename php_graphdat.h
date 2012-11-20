@@ -52,7 +52,7 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
   // items for settings
 	long socketPort;
     char *socketFile;
-    bool debug;
+    char debug;
     // items that are used when running
     int socketFD;
     char isDirty;
