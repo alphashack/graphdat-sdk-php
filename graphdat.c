@@ -32,6 +32,14 @@
 
 #define timeValToMs(a) (((double)a.tv_sec * 1000.0f) + ((double)a.tv_usec / 1000.0f))
 
+#ifndef PHP_FE_END
+#ifdef ZEND_FE_END
+#define PHP_FE_END ZEND_FE_END
+#else
+#define PHP_FE_END { NULL, NULL, NULL, 0, 0 }
+#endif
+#endif
+
 ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 
 /* True global resources - no need for thread safety here */
