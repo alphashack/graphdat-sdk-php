@@ -99,7 +99,7 @@ PHP_MINIT_FUNCTION(graphdat)
     ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 
-    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort));
+    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
 
 	return SUCCESS;
 }
@@ -136,7 +136,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
     if(GRAPHDAT_GLOBALS(socketFD) == -1)
     {
-        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort));
+        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
     }
     if(GRAPHDAT_GLOBALS(socketFD) == -1)
     {
@@ -258,14 +258,17 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     len[2] = buffer->size >> 8;
     len[3] = buffer->size;
     
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
     
-    size_t b64len = 1 + BASE64_LENGTH (buffer->size);
-    char *b64str = emalloc(b64len);
-    base64_encode(buffer->data, buffer->size, b64str, b64len);
-    PRINTDEBUG("sending %d bytes: %s\n", (int) buffer->size, b64str);
-    efree(b64str);
+    if(GRAPHDAT_GLOBALS(debug))
+    {
+        size_t b64len = 1 + BASE64_LENGTH (buffer->size);
+        char *b64str = emalloc(b64len);
+        base64_encode(buffer->data, buffer->size, b64str, b64len);
+        PRINTDEBUG("sending %d bytes: %s\n", (int) buffer->size, b64str);
+        efree(b64str);
+    }
     
     msgpack_sbuffer_free(buffer);
     msgpack_packer_free(pk);

@@ -9,7 +9,7 @@
 
 // path is used in unix
 // port is used in windows
-int openSocket(char *path, int port)
+int openSocket(char *path, int port, int debug)
 {
 	int         sockfd;
 	int         servlen;
@@ -20,7 +20,10 @@ int openSocket(char *path, int port)
 
 	if(sockfd == -1)
 	{
-		zend_error(E_NOTICE, "Graphdat :: Client could create a socket - error(%d): %s\n", errno, strerror(errno));
+        if(debug)
+        {
+            zend_error(E_NOTICE, "Graphdat :: Client could create a socket - error(%d): %s\n", errno, strerror(errno));
+        }
 		return -1;
 	}
     
@@ -34,10 +37,13 @@ int openSocket(char *path, int port)
 
 	if(result == -1)
 	{
-		zend_error(E_NOTICE, "Graphdat :: Client could not connect to path `%s` - error(%d): %s\n", path, errno, strerror(errno));
+        if(debug)
+        {
+            zend_error(E_NOTICE, "Graphdat :: Client could not connect to path `%s` - error(%d): %s\n", path, errno, strerror(errno));
+        }
 		sockfd = -1;
 	}
-    else
+    else if(debug)
     {
         zend_error(E_NOTICE, "Graphdat :: socket open\n");
     }
@@ -50,16 +56,22 @@ void closeSocket(int sockfd)
 	close(sockfd);
 }
 
-int socketWrite(int sockfd, void* buf, int len)
+int socketWrite(int sockfd, void* buf, int len, int debug)
 {
-    zend_error(E_NOTICE, "Graphdat :: sending %d bytes: %s\n", len, (char *) buf);
+    if(debug)
+    {
+        zend_error(E_NOTICE, "Graphdat :: sending %d bytes: %s\n", len, (char *) buf);
+    }
     int sentBytes = 0;
     int bytesToSend = len;
     while (bytesToSend > 0) {
         int tx = send(sockfd, buf + sentBytes, bytesToSend, 0);
         if(tx == -1)
         {
-            zend_error(E_NOTICE, "Graphdat :: Client could send data - error(%d): %s\n", errno, strerror(errno));
+            if(debug)
+            {
+                zend_error(E_NOTICE, "Graphdat :: Client could send data - error(%d): %s\n", errno, strerror(errno));
+            }
             bytesToSend = 0;
             sentBytes = -1;
         }
