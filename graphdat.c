@@ -28,7 +28,7 @@
 #include "php_graphdat.h"
 #include "sockets.h"
 #include "msgpack.h"
-#include "base64encode.h"
+#include "base64.h"
 
 #define timeValToMs(a) (((double)a.tv_sec * 1000.0f) + ((double)a.tv_usec / 1000.0f))
 
@@ -187,19 +187,70 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
     
     msgpack_sbuffer* buffer = msgpack_sbuffer_new();
+    msgpack_sbuffer_init(buffer);
     msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
-    // create map with 2 items (route, responsetime)
-    msgpack_pack_map(pk, 2);
-    // maps are object then key
+    // create map with 8 items (type, route, responsetime, timestamp, source, cputime, pid, context)
+    msgpack_pack_map(pk, 8);
+    // maps are key then object
+    // type == Sample
+    msgpack_pack_raw(pk, sizeof("type") - 1);
+    msgpack_pack_raw_body(pk, "type", sizeof("type") - 1);
+    msgpack_pack_raw(pk, sizeof("Sample") - 1);
+    msgpack_pack_raw_body(pk, "Sample", sizeof("Sample") - 1);
     // route
+    msgpack_pack_raw(pk, sizeof("route") - 1);
+    msgpack_pack_raw_body(pk, "route", sizeof("route") - 1);
     msgpack_pack_raw(pk, requestLineItemLen);
     msgpack_pack_raw_body(pk, requestLineItem, requestLineItemLen);
-    msgpack_pack_raw(pk, sizeof("route"));
-    msgpack_pack_raw_body(pk, "route", sizeof("route"));
     // response time
+    msgpack_pack_raw(pk, sizeof("responsetime") - 1);
+    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime") - 1);
     msgpack_pack_double(pk, totalTime);
-    msgpack_pack_raw(pk, sizeof("responsetime"));
-    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime"));
+    // timestamp
+    msgpack_pack_raw(pk, sizeof("timestamp") - 1);
+    msgpack_pack_raw_body(pk, "timestamp", sizeof("timestamp") - 1);
+    msgpack_pack_double(pk, timeNow.tv_sec * 1000);
+    // source == HTTP
+    msgpack_pack_raw(pk, sizeof("source") - 1);
+    msgpack_pack_raw_body(pk, "source", sizeof("source") - 1);
+    msgpack_pack_raw(pk, sizeof("HTTP") - 1);
+    msgpack_pack_raw_body(pk, "HTTP", sizeof("HTTP") - 1);
+    // cputime
+    msgpack_pack_raw(pk, sizeof("cputime") - 1);
+    msgpack_pack_raw_body(pk, "cputime", sizeof("cputime") - 1);
+    msgpack_pack_double(pk, 0.0);
+    //pid
+    msgpack_pack_raw(pk, sizeof("pid") - 1);
+    msgpack_pack_raw_body(pk, "pid", sizeof("pid") - 1);
+    msgpack_pack_double(pk, getpid());
+    // context is an array of maps
+    msgpack_pack_raw(pk, sizeof("context") - 1);
+    msgpack_pack_raw_body(pk, "context", sizeof("context") - 1);
+    // right now there is only 1 context item the root level of "/"
+    msgpack_pack_array(pk, 1);
+    // context has 5 items (firsttimestampoffset, responsetime, callcount, cputime, name)
+    msgpack_pack_map(pk, 5);
+    // firsttimestampoffset
+    msgpack_pack_raw(pk, sizeof("firsttimestampoffset") - 1);
+    msgpack_pack_raw_body(pk, "firsttimestampoffset", sizeof("firsttimestampoffset") - 1);
+    msgpack_pack_double(pk, 0.0);
+    // responsetime
+    msgpack_pack_raw(pk, sizeof("responsetime") - 1);
+    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime") - 1);
+    msgpack_pack_double(pk, totalTime);
+    // callcount
+    msgpack_pack_raw(pk, sizeof("callcount") - 1);
+    msgpack_pack_raw_body(pk, "callcount", sizeof("callcount") - 1);
+    msgpack_pack_int(pk, 1);
+    // cputime
+    msgpack_pack_raw(pk, sizeof("cputime") - 1);
+    msgpack_pack_raw_body(pk, "cputime", sizeof("cputime") - 1);
+    msgpack_pack_double(pk, 0.0);
+    // name
+    msgpack_pack_raw(pk, sizeof("name") - 1);
+    msgpack_pack_raw_body(pk, "name", sizeof("name") - 1);
+    msgpack_pack_raw(pk, sizeof("/") - 1);
+    msgpack_pack_raw_body(pk, "/", sizeof("/") - 1);
     
     unsigned char len[4];
     len[0] = buffer->size >> 24;
@@ -210,9 +261,9 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
     socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
     
-    size_t b64len = base64_encoded_size(buffer->size);
+    size_t b64len = 1 + BASE64_LENGTH (buffer->size);
     char *b64str = emalloc(b64len);
-    base64_encode(buffer->data, buffer->size, b64str);
+    base64_encode(buffer->data, buffer->size, b64str, b64len);
     PRINTDEBUG("sending %d bytes: %s\n", (int) buffer->size, b64str);
     efree(b64str);
     
@@ -224,16 +275,28 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     
 /*
 Need to send the following message to the agent with this info
-    var item = {
-        type: "Sample",
-        source: "HTTP",
-        route: sample.Method + ' ' + sample.URL,
-        responsetime: sample._ms,
-        timestamp: sample._ts,
-        cputime: sample['CPU time (ms)'],
-        pid: pid,
-        context: sample.Context
-    };
+ {
+     "type": "Sample",
+     "source": "HTTP",
+     "route": "GET /",
+     "responsetime": 49.414,
+     "timestamp": 1353535694666.753,
+     "cputime": 49.635,
+     "pid": "90904",
+     "context": [{
+         "firsttimestampoffset": 0.09912109375,
+         "responsetime": 49.414,
+         "callcount": 1,
+         "cputime": 49.635,
+         "name": "/"
+     }, {
+         "firsttimestampoffset": 3.8701171875,
+         "responsetime": 45.502,
+         "callcount": 1,
+         "cputime": 45.623,
+         "name": "/render"
+     }]
+ }
  */
 
 	return SUCCESS;

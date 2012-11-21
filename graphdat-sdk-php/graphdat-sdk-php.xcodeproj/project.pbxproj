@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		B3B3F89B165B09FC00487385 /* sockets.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sockets.c; sourceTree = "<group>"; };
-		B3B3F89C165B09FC00487385 /* sockets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sockets.h; sourceTree = "<group>"; };
 		B3B3F89D165B09FC00487385 /* graphdat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = graphdat.c; path = ../graphdat.c; sourceTree = "<group>"; };
 		B3B3F89E165B09FC00487385 /* php_graphdat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = php_graphdat.h; path = ../php_graphdat.h; sourceTree = "<group>"; };
 		B3B3F89F165B09FC00487385 /* config.m4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = config.m4; path = ../config.m4; sourceTree = "<group>"; };
@@ -18,16 +16,14 @@
 		B3B3F8A4165B09FC00487385 /* CREDITS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CREDITS; path = ../CREDITS; sourceTree = "<group>"; };
 		B3B3F8A5165B09FC00487385 /* EXPERIMENTAL */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = EXPERIMENTAL; path = ../EXPERIMENTAL; sourceTree = "<group>"; };
 		B3B3F8A6165B09FC00487385 /* graphdat.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = graphdat.php; path = ../graphdat.php; sourceTree = "<group>"; };
-		B3B3F8A9165B192200487385 /* msgpack */ = {isa = PBXFileReference; lastKnownFileType = folder; path = msgpack; sourceTree = "<group>"; };
-		B3B3F8AC165C347000487385 /* base64encode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = base64encode.c; sourceTree = "<group>"; };
-		B3B3F8AD165C348700487385 /* base64encode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = base64encode.h; sourceTree = "<group>"; };
+		B3B3F8B2165C98DC00487385 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; name = src; path = ../src; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		B3B3F88D165B092600487385 = {
 			isa = PBXGroup;
 			children = (
-				B3B3F89A165B09FC00487385 /* src */,
+				B3B3F8B2165C98DC00487385 /* src */,
 				B3B3F89D165B09FC00487385 /* graphdat.c */,
 				B3B3F89E165B09FC00487385 /* php_graphdat.h */,
 				B3B3F89F165B09FC00487385 /* config.m4 */,
@@ -38,19 +34,6 @@
 				B3B3F8A5165B09FC00487385 /* EXPERIMENTAL */,
 				B3B3F8A6165B09FC00487385 /* graphdat.php */,
 			);
-			sourceTree = "<group>";
-		};
-		B3B3F89A165B09FC00487385 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				B3B3F8A9165B192200487385 /* msgpack */,
-				B3B3F89B165B09FC00487385 /* sockets.c */,
-				B3B3F89C165B09FC00487385 /* sockets.h */,
-				B3B3F8AC165C347000487385 /* base64encode.c */,
-				B3B3F8AD165C348700487385 /* base64encode.h */,
-			);
-			name = src;
-			path = ../src;
 			sourceTree = "<group>";
 		};
 		B3B3F8A2165B09FC00487385 /* tests */ = {
