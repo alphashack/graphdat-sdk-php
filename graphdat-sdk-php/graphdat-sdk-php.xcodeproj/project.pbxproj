@@ -19,6 +19,8 @@
 		B3B3F8A5165B09FC00487385 /* EXPERIMENTAL */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = EXPERIMENTAL; path = ../EXPERIMENTAL; sourceTree = "<group>"; };
 		B3B3F8A6165B09FC00487385 /* graphdat.php */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.php; name = graphdat.php; path = ../graphdat.php; sourceTree = "<group>"; };
 		B3B3F8A9165B192200487385 /* msgpack */ = {isa = PBXFileReference; lastKnownFileType = folder; path = msgpack; sourceTree = "<group>"; };
+		B3B3F8AC165C347000487385 /* base64encode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = base64encode.c; sourceTree = "<group>"; };
+		B3B3F8AD165C348700487385 /* base64encode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = base64encode.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -44,6 +46,8 @@
 				B3B3F8A9165B192200487385 /* msgpack */,
 				B3B3F89B165B09FC00487385 /* sockets.c */,
 				B3B3F89C165B09FC00487385 /* sockets.h */,
+				B3B3F8AC165C347000487385 /* base64encode.c */,
+				B3B3F8AD165C348700487385 /* base64encode.h */,
 			);
 			name = src;
 			path = ../src;

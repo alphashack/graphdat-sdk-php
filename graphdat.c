@@ -28,6 +28,7 @@
 #include "php_graphdat.h"
 #include "sockets.h"
 #include "msgpack.h"
+#include "base64encode.h"
 
 #define timeValToMs(a) (((double)a.tv_sec * 1000.0f) + ((double)a.tv_usec / 1000.0f))
 
@@ -135,14 +136,18 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
     if(GRAPHDAT_GLOBALS(socketFD) == -1)
     {
-        DEBUG("Graphdat :: not connected to agent, skipping \n");
+        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort));
+    }
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        PRINTDEBUG("Graphdat :: not connected to agent, skipping \n");
        return SUCCESS;
     }
-    if(zend_hash_exists(serverVars, "REQUEST_URI", sizeof("REQUEST_URI")) == 0)
-    {
-        DEBUG("Graphdat :: No value for REQUEST_URI skipping\n");
-        return SUCCESS;
-    }
+//    if(zend_hash_exists(serverVars, "REQUEST_URI", sizeof("REQUEST_URI")) == 0)
+//    {
+//        PRINTDEBUG("Graphdat :: No value for REQUEST_URI skipping\n");
+//        return SUCCESS;
+//    }
     char* requestUri;
     int requestUriLen;
     char* requestMethod;
@@ -160,16 +165,16 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     if(zend_hash_find(serverVars, "REQUEST_URI", sizeof("REQUEST_URI"), (void **)&requestUriData) == FAILURE)
     {
         // always bail successfully
-        DEBUG("Graphdat :: failed getting value for REQUEST_URI skipping\n");
+        PRINTDEBUG("Graphdat :: failed getting value for REQUEST_URI skipping\n");
         return SUCCESS;
     }
     requestUri = Z_STRVAL_PP(requestUriData);
     requestUriLen = Z_STRLEN_PP(requestUriData);
-    
+        
     if(zend_hash_find(serverVars, "REQUEST_METHOD", sizeof("REQUEST_METHOD"), (void **)&requestMethodData) == FAILURE)
     {
         // always bail successfully
-        DEBUG("Graphdat :: failed getting value for REQUEST_METHOD skipping\n");
+        PRINTDEBUG("Graphdat :: failed getting value for REQUEST_METHOD skipping\n");
         return SUCCESS;
     }
     requestMethod = Z_STRVAL_PP(requestMethodData);
@@ -179,7 +184,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     requestLineItem = emalloc(requestLineItemLen);
     sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
     
-    zend_printf("Request %s took %fms\n", requestLineItem, totalTime);
+    PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
     
     msgpack_sbuffer* buffer = msgpack_sbuffer_new();
     msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
@@ -205,8 +210,16 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4);
     socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size);
     
+    size_t b64len = base64_encoded_size(buffer->size);
+    char *b64str = emalloc(b64len);
+    base64_encode(buffer->data, buffer->size, b64str);
+    PRINTDEBUG("sending %d bytes: %s\n", (int) buffer->size, b64str);
+    efree(b64str);
+    
     msgpack_sbuffer_free(buffer);
     msgpack_packer_free(pk);
+
+    efree(requestLineItem);
 
     
 /*

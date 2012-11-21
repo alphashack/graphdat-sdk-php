@@ -37,7 +37,11 @@ int openSocket(char *path, int port)
 		zend_error(E_NOTICE, "Graphdat :: Client could not connect to path `%s` - error(%d): %s\n", path, errno, strerror(errno));
 		sockfd = -1;
 	}
-
+    else
+    {
+        zend_error(E_NOTICE, "Graphdat :: socket open\n");
+    }
+    
 	return sockfd;
 }
 
@@ -48,5 +52,23 @@ void closeSocket(int sockfd)
 
 int socketWrite(int sockfd, void* buf, int len)
 {
-	return write(sockfd, &buf, len);
+    zend_error(E_NOTICE, "Graphdat :: sending %d bytes: %s\n", len, (char *) buf);
+    int sentBytes = 0;
+    int bytesToSend = len;
+    while (bytesToSend > 0) {
+        int tx = send(sockfd, buf + sentBytes, bytesToSend, 0);
+        if(tx == -1)
+        {
+            zend_error(E_NOTICE, "Graphdat :: Client could send data - error(%d): %s\n", errno, strerror(errno));
+            bytesToSend = 0;
+            sentBytes = -1;
+        }
+        else
+        {
+            sentBytes += tx;
+            bytesToSend -= tx;
+        }
+    }
+    
+    return sentBytes;
 }
