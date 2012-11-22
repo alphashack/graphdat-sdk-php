@@ -160,7 +160,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     int requestUriLen;
     char* requestMethod;
     int requestMethodLen;
-    char* requestLineItem;
+    char requestLineItem[1024];
     int requestLineItemLen;
     struct timeval timeNow;
     float totalTime;
@@ -188,9 +188,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     requestMethod = Z_STRVAL_PP(requestMethodData);
     requestMethodLen = Z_STRLEN_PP(requestMethodData);
     
-    requestLineItemLen = 1 + requestMethodLen + requestUriLen;
-    requestLineItem = emalloc(requestLineItemLen);
-    sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
+    requestLineItemLen = sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
     
     PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
     
@@ -281,9 +279,6 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     msgpack_sbuffer_free(buffer);
     msgpack_packer_free(pk);
 
-    efree(requestLineItem);
-
-    
 /*
 Need to send the following message to the agent with this info
  {
