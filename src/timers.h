@@ -44,11 +44,11 @@ struct graphdat_timer_list {
     // /foo/bar
     // where we move up and down the timer list incrementing
     // call count where appropriate
-    size_t currentIndex;
+    int currentIndex;
     // size of array used up
-    size_t used;
+    int used;
     // all available space in array
-    size_t capacity;
+    int capacity;
 };
 
 void initTimerList(int initialSize, struct graphdat_timer_list *timerList);
