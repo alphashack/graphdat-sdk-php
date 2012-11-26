@@ -22,6 +22,7 @@
 #define PHP_GRAPHDAT_H
 
 #include <sys/time.h>
+#include "timers.h"
 
 extern zend_module_entry graphdat_module_entry;
 #define phpext_graphdat_ptr &graphdat_module_entry
@@ -42,7 +43,8 @@ PHP_RINIT_FUNCTION(graphdat);
 PHP_RSHUTDOWN_FUNCTION(graphdat);
 PHP_MINFO_FUNCTION(graphdat);
 
-PHP_FUNCTION(confirm_graphdat_compiled);	/* For testing, remove later. */
+PHP_FUNCTION(graphdat_begin);
+PHP_FUNCTION(graphdat_end);
 
 /* 
   	Declare any global variables you may need between the BEGIN
@@ -56,7 +58,8 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
     // items that are used when running
     int socketFD;
     int isDirty;
-    struct timeval requestStartTime;
+    struct timeval requestStart;
+    struct graphdat_timer_list timers;
 ZEND_END_MODULE_GLOBALS(graphdat)
 
 

@@ -1,7 +1,7 @@
 #include <sys/socket.h>
 //#include <sys/types.h>
 #include <sys/un.h>
-//#include <unistd.h>
+#include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include "sockets.h"
@@ -60,7 +60,7 @@ int socketWrite(int sockfd, void* buf, int len, int debug)
 {
     if(debug)
     {
-        zend_error(E_NOTICE, "Graphdat :: sending %d bytes: %s\n", len, (char *) buf);
+        zend_error(E_NOTICE, "Graphdat :: writing %d bytes to agent\n'%s'\n", len, (char *) buf);
     }
     int sentBytes = 0;
     int bytesToSend = len;
@@ -80,6 +80,10 @@ int socketWrite(int sockfd, void* buf, int len, int debug)
             sentBytes += tx;
             bytesToSend -= tx;
         }
+    }
+    if(debug)
+    {
+        zend_error(E_NOTICE, "Graphdat :: Sent %d bytes to agent\n", sentBytes);
     }
     
     return sentBytes;
