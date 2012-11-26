@@ -229,8 +229,13 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     msgpack_pack_raw_body(pk, "context", sizeof("context") - 1);
     outputTimersToMsgPack(pk, &GRAPHDAT_GLOBALS(timers));
     
-    int buffsize = buffer->size;
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), &buffsize, sizeof(buffsize), GRAPHDAT_GLOBALS(debug));
+    unsigned char len[4];
+    len[0] = buffer->size >> 24;
+    len[1] = buffer->size >> 16;
+    len[2] = buffer->size >> 8;
+    len[3] = buffer->size;
+    
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
     socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
 
     if(GRAPHDAT_GLOBALS(debug))
