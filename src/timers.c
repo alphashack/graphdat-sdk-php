@@ -117,13 +117,11 @@ void endTimer(struct graphdat_timer_list* timerList, char *name)
 
 double totalResponseTime(struct graphdat_timer_list* timerList)
 {
-    double result = 0.0;
-    int i;
-    for(i=0; i<timerList->used; i++)
+    if(timerList->used < 1)
     {
-        result += timerList->array[i].responsetime;
+        return 0.0;
     }
-    return result;
+    return timerList->array[0].responsetime;
 }
 
 void outputTimersToMsgPack(msgpack_packer* pk, struct graphdat_timer_list *timerList)
