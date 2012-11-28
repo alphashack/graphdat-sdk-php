@@ -103,6 +103,11 @@ void beginTimer(struct graphdat_timer_list* timerList, char *name, struct timeva
 
 void endTimer(struct graphdat_timer_list* timerList, char *name)
 {
+    if(timerList->currentIndex < 0 || timerList->currentIndex >= timerList->used)
+    {
+        zend_error(E_ERROR, "Could not end timer named '%s' since the current index is out of bounds.", name);
+        return;
+    }
     if(strcmp(timerList->array[timerList->currentIndex].name, name) != 0)
     {
         zend_error(E_ERROR, "Could not end timer named '%s' since it's not the last timer to begin.", name);
