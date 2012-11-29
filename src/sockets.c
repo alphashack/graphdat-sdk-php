@@ -58,10 +58,6 @@ void closeSocket(int sockfd)
 
 int socketWrite(int sockfd, void* buf, int len, int debug)
 {
-    if(debug)
-    {
-        zend_error(E_NOTICE, "Graphdat :: writing %d bytes to agent\n'%s'\n", len, (char *) buf);
-    }
     int sentBytes = 0;
     int bytesToSend = len;
     while (bytesToSend > 0) {
@@ -80,10 +76,6 @@ int socketWrite(int sockfd, void* buf, int len, int debug)
             sentBytes += tx;
             bytesToSend -= tx;
         }
-    }
-    if(debug)
-    {
-        zend_error(E_NOTICE, "Graphdat :: Sent %d bytes to agent\n", sentBytes);
     }
     
     return sentBytes;
