@@ -12,7 +12,7 @@
 
 void initTimerList(int initialSize, struct graphdat_timer_list *timerList)
 {
-    timerList->array = (struct graphdat_timer *) emalloc(initialSize * sizeof(struct graphdat_timer *));
+    timerList->array = (struct graphdat_timer *) malloc(initialSize * sizeof(struct graphdat_timer));
     timerList->used = 0;
     timerList->currentIndex = -1;
     timerList->capacity = initialSize;
@@ -20,13 +20,17 @@ void initTimerList(int initialSize, struct graphdat_timer_list *timerList)
 
 void emptyTimerList(struct graphdat_timer_list *timerList)
 {
+    if(timerList->array == NULL)
+    {
+        return;
+    }
     int i;
     for(i=0; i<timerList->used; i++)
     {
         struct graphdat_timer *timer = (struct graphdat_timer*) &timerList->array[i];
-        efree((void*)timer->name);
+        free(timer->name);
         timer->name = NULL;
-        efree((void*)timer->fullPath);
+        free(timer->fullPath);
         timer->fullPath = NULL;
     }
     timerList->currentIndex = -1;
@@ -36,8 +40,11 @@ void emptyTimerList(struct graphdat_timer_list *timerList)
 void freeTimerList(struct graphdat_timer_list *timerList)
 {
     emptyTimerList(timerList);
-    //efree(timerList->array);
-    timerList->array = NULL;
+    if(timerList->array)
+    {
+        free(timerList->array);
+        timerList->array = NULL;
+    }
     timerList->used = timerList->capacity = 0;
 }
 
@@ -62,6 +69,10 @@ int indexOfTimer(struct graphdat_timer_list *timerList, char *fullPath)
 // callcount is the number of times this timer was called
 void beginTimer(struct graphdat_timer_list* timerList, char *name, struct timeval requestStart)
 {
+    if(timerList->array == NULL)
+    {
+        return;
+    }
     struct graphdat_timer *timer;
     char *currentPath = (timerList->currentIndex < 1) ? "" : timerList->array[timerList->currentIndex].fullPath;
     size_t fullPathLen = strlen(currentPath) + strlen(name) + 3;
@@ -75,7 +86,7 @@ void beginTimer(struct graphdat_timer_list* timerList, char *name, struct timeva
         if(timerList->used == timerList->capacity)
         {
             timerList->capacity *= 2;
-            timerList->array = (struct graphdat_timer *)erealloc(timerList->array, timerList->capacity * sizeof(struct graphdat_timer));
+            timerList->array = (struct graphdat_timer *)realloc(timerList->array, timerList->capacity * sizeof(struct graphdat_timer));
         }
         timer = (struct graphdat_timer*) &timerList->array[timerList->used];
         indx = timerList->used;
@@ -83,8 +94,8 @@ void beginTimer(struct graphdat_timer_list* timerList, char *name, struct timeva
 
         gettimeofday(&tnow, NULL);
 
-        timer->name = estrdup(name);
-        timer->fullPath = estrdup(fullPath);
+        timer->name = strdup(name);
+        timer->fullPath = strdup(fullPath);
         timer->firsttimestampoffset = (timeValToMs(tnow) - timeValToMs(requestStart));
         timer->responsetime = 0;
         timer->callcount = 0;
@@ -103,6 +114,10 @@ void beginTimer(struct graphdat_timer_list* timerList, char *name, struct timeva
 
 void endTimer(struct graphdat_timer_list* timerList, char *name)
 {
+    if(timerList->array == NULL)
+    {
+        return;
+    }
     if(timerList->currentIndex < 0 || timerList->currentIndex >= timerList->used)
     {
         zend_error(E_ERROR, "Could not end timer named '%s' since the current index is out of bounds.", name);
