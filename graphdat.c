@@ -40,6 +40,7 @@
 // declare some helpers
 char* getRequestPath(HashTable *serverVars, size_t *slen);
 char* getRequestMethod(HashTable *serverVars, size_t *slen, char *fallback);
+void onRequestEnd(TSRMLS_D);
 
 #ifndef PHP_FE_END
 #ifdef ZEND_FE_END
@@ -101,9 +102,18 @@ PHP_INI_END()
 /*
  * Set any global values not set as part of the php.ini
  */
-static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals)
+static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals TSRMLS_DC)
 {
-    graphdat_globals->socketFD = -1;
+  memset(graphdat_globals, 0, sizeof(zend_graphdat_globals));
+  graphdat_globals->socketFD = -1;
+}
+
+/*
+ * end resoures used 
+ */
+static void php_graphdat_shutdown_globals(zend_graphdat_globals *graphdat_globals TSRMLS_DC)
+{
+
 }
 
 /* 
@@ -114,7 +124,6 @@ PHP_MINIT_FUNCTION(graphdat)
     ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
     REGISTER_INI_ENTRIES();
 
-    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
     initTimerList(8, &GRAPHDAT_GLOBALS(timers));
 
     return SUCCESS;
@@ -125,9 +134,6 @@ PHP_MINIT_FUNCTION(graphdat)
  */
 PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
-    freeTimerList(&GRAPHDAT_GLOBALS(timers));
-    closeSocket(GRAPHDAT_GLOBALS(socketFD));
-
     UNREGISTER_INI_ENTRIES();
     return SUCCESS;
 }
@@ -137,6 +143,7 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
  */
 PHP_RINIT_FUNCTION(graphdat)
 {
+    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
     emptyTimerList(&GRAPHDAT_GLOBALS(timers));
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
@@ -148,135 +155,13 @@ PHP_RINIT_FUNCTION(graphdat)
  */
 PHP_RSHUTDOWN_FUNCTION(graphdat)
 {
-    endTimer(&GRAPHDAT_GLOBALS(timers), "");
-    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    onRequestEnd(TSRMLS_C);
+    freeTimerList(&GRAPHDAT_GLOBALS(timers));
+    if(GRAPHDAT_GLOBALS(socketFD) != -1)
     {
-        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
+        closeSocket(GRAPHDAT_GLOBALS(socketFD));
     }
-    if(GRAPHDAT_GLOBALS(socketFD) == -1)
-    {
-        PRINTDEBUG("Graphdat :: not connected to agent, skipping \n");
-        emptyTimerList(&GRAPHDAT_GLOBALS(timers));
-        return SUCCESS;
-    }
-    char* requestUri;
-    size_t requestUriLen;
-    char* requestMethod;
-    size_t requestMethodLen;
-
-    char *requestLineItem;
-    int requestLineItemLen;
-    struct timeval timeNow;
-
-    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
-    double totalTime = totalResponseTime(&GRAPHDAT_GLOBALS(timers));
-    
-    requestUri = getRequestPath(serverVars, &requestUriLen);
-    if(requestUri == NULL)
-    {
-        // always bail successfully
-        PRINTDEBUG("Graphdat :: failed getting value for request path - skipping\n");
-        emptyTimerList(&GRAPHDAT_GLOBALS(timers));
-        return SUCCESS;
-    }
-    requestMethod = getRequestMethod(serverVars, &requestMethodLen, "CLI");
-
-    requestLineItemLen = requestUriLen + requestMethodLen + 2;
-    requestLineItem = emalloc(requestLineItemLen);
-    sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
-    
-    PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
-    
-    msgpack_sbuffer* buffer = msgpack_sbuffer_new();
-    msgpack_sbuffer_init(buffer);
-    msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
-    // create map with 8 items (type, route, responsetime, timestamp, source, cputime, pid, context)
-    msgpack_pack_map(pk, 8);
-    // maps are key then object
-    // type == Sample
-    msgpack_pack_raw(pk, sizeof("type") - 1);
-    msgpack_pack_raw_body(pk, "type", sizeof("type") - 1);
-    msgpack_pack_raw(pk, sizeof("Sample") - 1);
-    msgpack_pack_raw_body(pk, "Sample", sizeof("Sample") - 1);
-    // route
-    msgpack_pack_raw(pk, sizeof("route") - 1);
-    msgpack_pack_raw_body(pk, "route", sizeof("route") - 1);
-    msgpack_pack_raw(pk, requestLineItemLen - 1);
-    msgpack_pack_raw_body(pk, requestLineItem, requestLineItemLen - 1);
-    // response time
-    msgpack_pack_raw(pk, sizeof("responsetime") - 1);
-    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime") - 1);
-    msgpack_pack_double(pk, totalTime);
-    // timestamp
-    msgpack_pack_raw(pk, sizeof("timestamp") - 1);
-    msgpack_pack_raw_body(pk, "timestamp", sizeof("timestamp") - 1);
-    msgpack_pack_double(pk, timeNow.tv_sec * 1000);
-    // source == HTTP
-    msgpack_pack_raw(pk, sizeof("source") - 1);
-    msgpack_pack_raw_body(pk, "source", sizeof("source") - 1);
-    msgpack_pack_raw(pk, sizeof("HTTP") - 1);
-    msgpack_pack_raw_body(pk, "HTTP", sizeof("HTTP") - 1);
-    // cputime
-    msgpack_pack_raw(pk, sizeof("cputime") - 1);
-    msgpack_pack_raw_body(pk, "cputime", sizeof("cputime") - 1);
-    msgpack_pack_double(pk, 0.0);
-    //pid
-    msgpack_pack_raw(pk, sizeof("pid") - 1);
-    msgpack_pack_raw_body(pk, "pid", sizeof("pid") - 1);
-    msgpack_pack_double(pk, getpid());
-    // context is an array of maps
-    msgpack_pack_raw(pk, sizeof("context") - 1);
-    msgpack_pack_raw_body(pk, "context", sizeof("context") - 1);
-    outputTimersToMsgPack(pk, &GRAPHDAT_GLOBALS(timers));
-    
-    unsigned char len[4];
-    len[0] = buffer->size >> 24;
-    len[1] = buffer->size >> 16;
-    len[2] = buffer->size >> 8;
-    len[3] = buffer->size;
-    
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
-
-    if(GRAPHDAT_GLOBALS(debug))
-    {
-        size_t b64len = 1 + BASE64_LENGTH (buffer->size);
-        char *b64str = emalloc(b64len);
-        base64_encode(buffer->data, buffer->size, b64str, b64len);
-        PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
-        efree(b64str);
-    }
-    
-    msgpack_sbuffer_free(buffer);
-    msgpack_packer_free(pk);
-    efree(requestLineItem);
-    emptyTimerList(&GRAPHDAT_GLOBALS(timers));
-/*
-Need to send the following message to the agent with this info
- {
-     "type": "Sample",
-     "source": "HTTP",
-     "route": "GET /",
-     "responsetime": 49.414,
-     "timestamp": 1353535694666.753,
-     "cputime": 49.635,
-     "pid": "90904",
-     "context": [{
-         "firsttimestampoffset": 0.09912109375,
-         "responsetime": 49.414,
-         "callcount": 1,
-         "cputime": 49.635,
-         "name": "/"
-     }, {
-         "firsttimestampoffset": 3.8701171875,
-         "responsetime": 45.502,
-         "callcount": 1,
-         "cputime": 45.623,
-         "name": "/render"
-     }]
- }
- */
-  return SUCCESS;
+    return SUCCESS;
 }
 
 /*
@@ -351,4 +236,134 @@ char* getRequestMethod(HashTable *serverVars, size_t *slen, char *fallback)
         *slen = Z_STRLEN_PP(requestMethodData);
     }
     return result;
+}
+
+
+void onRequestEnd(TSRMLS_D)
+{
+    endTimer(&GRAPHDAT_GLOBALS(timers), "");
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
+    }
+    if(GRAPHDAT_GLOBALS(socketFD) == -1)
+    {
+        PRINTDEBUG("Graphdat :: not connected to agent, skipping \n");
+        return;
+    }
+    char* requestUri;
+    size_t requestUriLen;
+    char* requestMethod;
+    size_t requestMethodLen;
+
+    char *requestLineItem;
+    int requestLineItemLen;
+    struct timeval timeNow;
+
+    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
+    double totalTime = totalResponseTime(&GRAPHDAT_GLOBALS(timers));
+    
+    requestUri = getRequestPath(serverVars, &requestUriLen);
+    if(requestUri == NULL)
+    {
+        // always bail successfully
+        PRINTDEBUG("Graphdat :: failed getting value for request path - skipping\n");
+        return;
+    }
+    requestMethod = getRequestMethod(serverVars, &requestMethodLen, "CLI");
+
+    requestLineItemLen = requestUriLen + requestMethodLen + 2;
+    requestLineItem = emalloc(requestLineItemLen);
+    sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
+    
+    PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
+    
+    msgpack_sbuffer* buffer = msgpack_sbuffer_new();
+    msgpack_sbuffer_init(buffer);
+    msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
+    // create map with 8 items (type, route, responsetime, timestamp, source, cputime, pid, context)
+    msgpack_pack_map(pk, 8);
+    // maps are key then object
+    // type == Sample
+    msgpack_pack_raw(pk, sizeof("type") - 1);
+    msgpack_pack_raw_body(pk, "type", sizeof("type") - 1);
+    msgpack_pack_raw(pk, sizeof("Sample") - 1);
+    msgpack_pack_raw_body(pk, "Sample", sizeof("Sample") - 1);
+    // route
+    msgpack_pack_raw(pk, sizeof("route") - 1);
+    msgpack_pack_raw_body(pk, "route", sizeof("route") - 1);
+    msgpack_pack_raw(pk, requestLineItemLen - 1);
+    msgpack_pack_raw_body(pk, requestLineItem, requestLineItemLen - 1);
+    // response time
+    msgpack_pack_raw(pk, sizeof("responsetime") - 1);
+    msgpack_pack_raw_body(pk, "responsetime", sizeof("responsetime") - 1);
+    msgpack_pack_double(pk, totalTime);
+    // timestamp
+    msgpack_pack_raw(pk, sizeof("timestamp") - 1);
+    msgpack_pack_raw_body(pk, "timestamp", sizeof("timestamp") - 1);
+    msgpack_pack_double(pk, timeNow.tv_sec * 1000);
+    // source == HTTP
+    msgpack_pack_raw(pk, sizeof("source") - 1);
+    msgpack_pack_raw_body(pk, "source", sizeof("source") - 1);
+    msgpack_pack_raw(pk, sizeof("HTTP") - 1);
+    msgpack_pack_raw_body(pk, "HTTP", sizeof("HTTP") - 1);
+    // cputime
+    msgpack_pack_raw(pk, sizeof("cputime") - 1);
+    msgpack_pack_raw_body(pk, "cputime", sizeof("cputime") - 1);
+    msgpack_pack_double(pk, 0.0);
+    //pid
+    msgpack_pack_raw(pk, sizeof("pid") - 1);
+    msgpack_pack_raw_body(pk, "pid", sizeof("pid") - 1);
+    msgpack_pack_double(pk, getpid());
+    // context is an array of maps
+    msgpack_pack_raw(pk, sizeof("context") - 1);
+    msgpack_pack_raw_body(pk, "context", sizeof("context") - 1);
+    outputTimersToMsgPack(pk, &GRAPHDAT_GLOBALS(timers));
+    
+    unsigned char len[4];
+    len[0] = buffer->size >> 24;
+    len[1] = buffer->size >> 16;
+    len[2] = buffer->size >> 8;
+    len[3] = buffer->size;
+    
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
+    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
+
+    if(GRAPHDAT_GLOBALS(debug))
+    {
+        size_t b64len = 1 + BASE64_LENGTH (buffer->size);
+        char *b64str = emalloc(b64len);
+        base64_encode(buffer->data, buffer->size, b64str, b64len);
+        PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
+        efree(b64str);
+    }
+
+    msgpack_sbuffer_free(buffer);
+    msgpack_packer_free(pk);
+    efree(requestLineItem);
+/*
+Need to send the following message to the agent with this info
+ {
+     "type": "Sample",
+     "source": "HTTP",
+     "route": "GET /",
+     "responsetime": 49.414,
+     "timestamp": 1353535694666.753,
+     "cputime": 49.635,
+     "pid": "90904",
+     "context": [{
+         "firsttimestampoffset": 0.09912109375,
+         "responsetime": 49.414,
+         "callcount": 1,
+         "cputime": 49.635,
+         "name": "/"
+     }, {
+         "firsttimestampoffset": 3.8701171875,
+         "responsetime": 45.502,
+         "callcount": 1,
+         "cputime": 45.623,
+         "name": "/render"
+     }]
+ }
+ */
 }
