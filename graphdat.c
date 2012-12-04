@@ -108,14 +108,6 @@ static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals TS
   graphdat_globals->socketFD = -1;
 }
 
-/*
- * end resoures used 
- */
-static void php_graphdat_shutdown_globals(zend_graphdat_globals *graphdat_globals TSRMLS_DC)
-{
-
-}
-
 /* 
  * What to do at module init
  */
@@ -131,6 +123,12 @@ PHP_MINIT_FUNCTION(graphdat)
  */
 PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
+    if(GRAPHDAT_GLOBALS(socketFD) != -1)
+    {
+        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        GRAPHDAT_GLOBALS(socketFD) = -1;
+    }
+
     UNREGISTER_INI_ENTRIES();
     return SUCCESS;
 }
@@ -142,11 +140,6 @@ PHP_RINIT_FUNCTION(graphdat)
 {
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
     initTimerList(8, &GRAPHDAT_GLOBALS(timers));
-    if(GRAPHDAT_GLOBALS(socketFD) != -1)
-    {
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
-        GRAPHDAT_GLOBALS(socketFD) = -1;
-    }
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
     return SUCCESS;
 }
@@ -158,11 +151,6 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
 {
     onRequestEnd(TSRMLS_C);
     freeTimerList(&GRAPHDAT_GLOBALS(timers));
-    if(GRAPHDAT_GLOBALS(socketFD) != -1)
-    {
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
-        GRAPHDAT_GLOBALS(socketFD) = -1;
-    }
     return SUCCESS;
 }
 
@@ -329,7 +317,13 @@ void onRequestEnd(TSRMLS_D)
     len[3] = buffer->size;
     
     socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
+    size_t written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
+    if(written != buffer->size)
+    {
+        PRINTDEBUG("Mismatch: %d bytes written, %d bytes send to be written.\n", (uint) written, (uint) buffer->size);
+        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        GRAPHDAT_GLOBALS(socketFD) = -1;
+    }
 
     if(GRAPHDAT_GLOBALS(debug))
     {
