@@ -18,7 +18,7 @@ int hasMagento(TSRMLS_D)
 	{
 	    zval **classVal;
 	    zend_hash_find(EG(class_table), "mage", sizeof("mage"),  (void **) &classVal);
-	    php_var_dump(classVal, 1, TSRMLS_C);
+	    php_var_dump(classVal, 1 TSRMLS_CC);
 		return 1;
 	}
 	return 0;

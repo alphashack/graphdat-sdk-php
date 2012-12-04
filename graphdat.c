@@ -199,7 +199,7 @@ char* getRequestPath(size_t *slen TSRMLS_DC)
     if(hasMagento(TSRMLS_C))
     {
         size_t magentoLen;
-        result = getMagentoPath(&magentoLen, TSRMLS_C);
+        result = getMagentoPath(&magentoLen TSRMLS_CC);
         if(result != NULL)
         {
             *slen = magentoLen;
@@ -266,14 +266,14 @@ void onRequestEnd(TSRMLS_D)
 
     double totalTime = totalResponseTime(&GRAPHDAT_GLOBALS(timers));
     
-    requestUri = getRequestPath(&requestUriLen, TSRMLS_C);
+    requestUri = getRequestPath(&requestUriLen TSRMLS_CC);
     if(requestUri == NULL)
     {
         // always bail successfully
         PRINTDEBUG("Graphdat :: failed getting value for request path - skipping\n");
         return;
     }
-    requestMethod = getRequestMethod(&requestMethodLen, "CLI", TSRMLS_C);
+    requestMethod = getRequestMethod(&requestMethodLen, "CLI" TSRMLS_CC);
 
     requestLineItemLen = requestUriLen + requestMethodLen + 2;
     requestLineItem = emalloc(requestLineItemLen);
