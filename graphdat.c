@@ -123,9 +123,6 @@ PHP_MINIT_FUNCTION(graphdat)
 {
     ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
     REGISTER_INI_ENTRIES();
-
-    initTimerList(8, &GRAPHDAT_GLOBALS(timers));
-
     return SUCCESS;
 }
 
@@ -143,9 +140,8 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
  */
 PHP_RINIT_FUNCTION(graphdat)
 {
-    GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
-    emptyTimerList(&GRAPHDAT_GLOBALS(timers));
+    initTimerList(8, &GRAPHDAT_GLOBALS(timers));
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
     return SUCCESS;
 }

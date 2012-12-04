@@ -45,7 +45,7 @@ int openSocket(char *path, int port, int debug)
 	}
     else if(debug)
     {
-        zend_error(E_NOTICE, "Graphdat :: socket open\n");
+        zend_error(E_NOTICE, "Graphdat :: socket opened\n");
     }
     
 	return sockfd;
@@ -54,6 +54,7 @@ int openSocket(char *path, int port, int debug)
 void closeSocket(int sockfd)
 {
 	close(sockfd);
+    zend_error(E_NOTICE, "Graphdat :: socket closed\n");
 }
 
 int socketWrite(int sockfd, void* buf, int len, int debug)
