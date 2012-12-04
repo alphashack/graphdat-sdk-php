@@ -12,10 +12,15 @@
 
 void initTimerList(int initialSize, struct graphdat_timer_list *timerList)
 {
-    timerList->array = (struct graphdat_timer *) malloc(initialSize * sizeof(struct graphdat_timer));
+    uint arraySize = initialSize * sizeof(struct graphdat_timer);
+    timerList->array = (struct graphdat_timer *) malloc(arraySize);
     timerList->used = 0;
     timerList->currentIndex = -1;
     timerList->capacity = initialSize;
+    if(timerList->array == NULL)
+    {
+        zend_error(E_WARNING, "Could not allocate %d bytes for Graphdat timers", arraySize);
+    }
 }
 
 void emptyTimerList(struct graphdat_timer_list *timerList)
@@ -28,10 +33,16 @@ void emptyTimerList(struct graphdat_timer_list *timerList)
     for(i=0; i<timerList->used; i++)
     {
         struct graphdat_timer *timer = (struct graphdat_timer*) &timerList->array[i];
-        free(timer->name);
-        timer->name = NULL;
-        free(timer->fullPath);
-        timer->fullPath = NULL;
+        if(timer->name)
+        {
+            free(timer->name);
+            timer->name = NULL;
+        }
+        if(timer->fullPath)
+        {
+            free(timer->fullPath);
+            timer->fullPath = NULL;
+        }
     }
     timerList->currentIndex = -1;
     timerList->used = 0;
