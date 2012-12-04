@@ -36,10 +36,11 @@
 #include "base64.h"
 #include "timers.h"
 #include <string.h>
+#include "magento.h"
 
 // declare some helpers
-char* getRequestPath(HashTable *serverVars, size_t *slen);
-char* getRequestMethod(HashTable *serverVars, size_t *slen, char *fallback);
+char* getRequestPath(size_t *slen TSRMLS_DC);
+char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC);
 void onRequestEnd(TSRMLS_D);
 
 #ifndef PHP_FE_END
@@ -190,11 +191,23 @@ PHP_FUNCTION(graphdat_end)
 
 ///// Helpers
 
-char* getRequestPath(HashTable *serverVars, size_t *slen)
+char* getRequestPath(size_t *slen TSRMLS_DC)
 {
     char * result;
     zval **requestUriData;
     int found = 1;
+    if(hasMagento(TSRMLS_C))
+    {
+        size_t magentoLen;
+        result = getMagentoPath(&magentoLen, TSRMLS_C);
+        if(result != NULL)
+        {
+            *slen = magentoLen;
+            return result;
+        }
+    }
+    // looks like we can't do any magic
+    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
     if(zend_hash_find(serverVars, "REQUEST_URI", sizeof("REQUEST_URI"), (void **)&requestUriData) == FAILURE)
     {
         if(zend_hash_find(serverVars, "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void **)&requestUriData) == FAILURE)
@@ -211,10 +224,11 @@ char* getRequestPath(HashTable *serverVars, size_t *slen)
     return result;
 }
 
-char* getRequestMethod(HashTable *serverVars, size_t *slen, char *fallback)
+char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC)
 {
     char * result;
     zval **requestMethodData;
+    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
     if(zend_hash_find(serverVars, "REQUEST_METHOD", sizeof("REQUEST_METHOD"), (void **)&requestMethodData) == FAILURE)
     {
         result = fallback;
@@ -250,17 +264,16 @@ void onRequestEnd(TSRMLS_D)
     int requestLineItemLen;
     struct timeval timeNow;
 
-    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
     double totalTime = totalResponseTime(&GRAPHDAT_GLOBALS(timers));
     
-    requestUri = getRequestPath(serverVars, &requestUriLen);
+    requestUri = getRequestPath(&requestUriLen, TSRMLS_C);
     if(requestUri == NULL)
     {
         // always bail successfully
         PRINTDEBUG("Graphdat :: failed getting value for request path - skipping\n");
         return;
     }
-    requestMethod = getRequestMethod(serverVars, &requestMethodLen, "CLI");
+    requestMethod = getRequestMethod(&requestMethodLen, "CLI", TSRMLS_C);
 
     requestLineItemLen = requestUriLen + requestMethodLen + 2;
     requestLineItem = emalloc(requestLineItemLen);
