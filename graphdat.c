@@ -142,6 +142,11 @@ PHP_RINIT_FUNCTION(graphdat)
 {
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
     initTimerList(8, &GRAPHDAT_GLOBALS(timers));
+    if(GRAPHDAT_GLOBALS(socketFD) != -1)
+    {
+        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        GRAPHDAT_GLOBALS(socketFD) = -1;
+    }
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
     return SUCCESS;
 }
@@ -156,6 +161,7 @@ PHP_RSHUTDOWN_FUNCTION(graphdat)
     if(GRAPHDAT_GLOBALS(socketFD) != -1)
     {
         closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        GRAPHDAT_GLOBALS(socketFD) = -1;
     }
     return SUCCESS;
 }

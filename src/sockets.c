@@ -45,7 +45,7 @@ int openSocket(char *path, int port, int debug)
 	}
     else if(debug)
     {
-        zend_error(E_NOTICE, "Graphdat :: socket opened\n");
+        zend_error(E_NOTICE, "Graphdat :: socket %d opened\n", sockfd);
     }
     
 	return sockfd;
@@ -54,7 +54,7 @@ int openSocket(char *path, int port, int debug)
 void closeSocket(int sockfd)
 {
 	close(sockfd);
-    zend_error(E_NOTICE, "Graphdat :: socket closed\n");
+    zend_error(E_NOTICE, "Graphdat :: socket %d closed\n", sockfd);
 }
 
 int socketWrite(int sockfd, void* buf, int len, int debug)
@@ -67,7 +67,7 @@ int socketWrite(int sockfd, void* buf, int len, int debug)
         {
             if(debug)
             {
-                zend_error(E_NOTICE, "Graphdat :: Client could send data - error(%d): %s\n", errno, strerror(errno));
+                zend_error(E_NOTICE, "Graphdat :: Client could send data to socket %d - error(%d): %s\n", sockfd, errno, strerror(errno));
             }
             bytesToSend = 0;
             sentBytes = -1;
