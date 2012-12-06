@@ -1,8 +1,7 @@
 graphdat-sdk-php
 ================
 
-PHP Extension for graphdat
-To find out more about graphdat visit http://dashboard.graphdat.com/landing
+PHP Extension for graphdat. To find out more about graphdat visit http://dashboard.graphdat.com/landing
 
 NOTE: For now only linux and OSX installations of the extension are supported. Watch this space for the windows version.
 
