@@ -218,7 +218,13 @@ char* getRequestPath(size_t *slen TSRMLS_DC)
         }
     }
     // looks like we can't do any magic
-    HashTable *serverVars = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
+    zval *zServerVars = PG(http_globals)[TRACK_VARS_SERVER];
+    // the server globals should never be null....
+    if(zServerVars == NULL)
+    {
+      return NULL;
+    }
+    HashTable *serverVars = Z_ARRVAL_P(zServerVars);
     if(zend_hash_find(serverVars, "REQUEST_URI", sizeof("REQUEST_URI"), (void **)&requestUriData) == FAILURE)
     {
         if(zend_hash_find(serverVars, "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void **)&requestUriData) == FAILURE)
