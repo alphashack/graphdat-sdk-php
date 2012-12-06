@@ -37,6 +37,7 @@
 #include "timers.h"
 #include <string.h>
 #include "magento.h"
+#include "drupal7.h"
 
 // declare some helpers
 char* getRequestPath(size_t *slen TSRMLS_DC);
@@ -203,6 +204,16 @@ char* getRequestPath(size_t *slen TSRMLS_DC)
         if(result != NULL)
         {
             *slen = magentoLen;
+            return result;
+        }
+    }
+    if(hasDrupal7(TSRMLS_C))
+    {
+        size_t drupal7len;
+        result = getDrupal7Path(&drupal7len TSRMLS_CC);
+        if(result != NULL)
+        {
+            *slen = drupal7len;
             return result;
         }
     }
