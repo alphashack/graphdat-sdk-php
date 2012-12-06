@@ -1,2 +1,0 @@
-sudo /etc/init.d/graphdat restart
-gdb --args php -n -c ./php.ini -d extension="modules/graphdat.so" -e -f graphdat.php

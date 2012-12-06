@@ -1,3 +1,0 @@
-~/.graphdat/bin/graphdat stop
-~/.graphdat/bin/graphdat start
-php -n -c ./php.ini -d extension="modules/graphdat.so" -f graphdat.php

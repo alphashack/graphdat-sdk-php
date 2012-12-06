@@ -2,32 +2,36 @@ graphdat-sdk-php
 ================
 
 PHP Extension for graphdat
+To find out more about graphdat visit http://dashboard.graphdat.com/landing
 
-Steps to build
-===============
-configure your php build with the following two flags
+NOTE: For now only linux and OSX installations of the extension are supported. Watch this space for the windows version.
 
-	--enable-maintainer-zts --enable-debug
+Steps to build the extension
+============================
 
-the `--enable-debug` flag will make a debug version of php that spits out things like memory leak warnings
+* Downloaded and extract the latest tarball (https://github.com/alphashack/graphdat-sdk-php/archive/master.zip)
+* Run `phpize` - this will create the configure script
+* Run `./configure --enable-graphdat`
+* Run `make`
+* Run `sudo make install`
 
-then run
+The extension is now installed and will need to be enabled. Adding the following line to your php.ini file 
 
-	phpize
-	./configure --enable-graphdat CFLAGS="-O0 -g3" LDFLAGS="-O0 -g3"
-	make
-	sudo make install
+```ini
+extension=graphdat.so
+```
 
-the `CFLAGS` and `LDFLAGS` set no optimizations and also compiles debugging symbols
+Restart Apache/nginx/lighthttpd and you should now see request counts and response times being reported on your graphdat dashboard.
 
-once you have done that the graphdat module is installed
-to enable it you need to edit your php.ini file and add
+Instrumenting your code
+=======================
 
+The extension adds two methods to PHP, `graphdat_begin` and `graphdat_end`. These methods take 1 parameter which is the name of the timer. For example:
 
-References
-===========
-http://devzone.zend.com/303/extension-writing-part-i-introduction-to-php-and-zend/
-http://www.tuxradar.com/practicalphp/20/3/0
-http://www.php.net/manual/en/internals2.php
-http://php.net/manual/en/internals2.ze1.zendapi.php
-http://engineering.yakaz.com/writing-a-cpp-extension-for-php-5.html
+```php
+    graphdat_begin("get info");
+    phpinfo(INFO_VARIABLES);
+    graphdat_end("get info");
+```
+
+By putting timers around parts of your codebase you can monitor in realtime how each part is performing and see trends over time, and during load.
