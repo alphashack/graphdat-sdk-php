@@ -11,49 +11,49 @@
 // port is used in windows
 int openSocket(char *path, int port, int debug)
 {
-	int         sockfd;
-	int         servlen;
-	struct sockaddr_un serv_addr;
-	int         result;
+    int sockfd;
+    int servlen;
+    struct sockaddr_un serv_addr;
+    int result;
 
-	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-	if(sockfd == -1)
-	{
+    if(sockfd == -1)
+    {
         if(debug)
         {
             zend_error(E_NOTICE, "Graphdat :: Client could create a socket - error(%d): %s\n", errno, strerror(errno));
         }
-		return -1;
-	}
+        return -1;
+    }
     
     bzero((char *) &serv_addr, sizeof(struct sockaddr_un));
-	serv_addr.sun_family = AF_UNIX;
-	strcpy(serv_addr.sun_path, path);
+    serv_addr.sun_family = AF_UNIX;
+    strcpy(serv_addr.sun_path, path);
     servlen = SUN_LEN(&serv_addr);
-//	servlen = sizeof(serv_addr.sun_family) + strlen(path) + 1;
+//  servlen = sizeof(serv_addr.sun_family) + strlen(path) + 1;
 
-	result = connect(sockfd, (struct sockaddr*)&serv_addr, servlen);
+    result = connect(sockfd, (struct sockaddr*)&serv_addr, servlen);
 
-	if(result == -1)
-	{
+    if(result == -1)
+    {
         if(debug)
         {
             zend_error(E_NOTICE, "Graphdat :: Client could not connect to path `%s` - error(%d): %s\n", path, errno, strerror(errno));
         }
-		sockfd = -1;
-	}
+        sockfd = -1;
+    }
     else if(debug)
     {
         zend_error(E_NOTICE, "Graphdat :: socket %d opened\n", sockfd);
     }
     
-	return sockfd;
+    return sockfd;
 }
 
 void closeSocket(int sockfd)
 {
-	close(sockfd);
+    close(sockfd);
     zend_error(E_NOTICE, "Graphdat :: socket %d closed\n", sockfd);
 }
 
