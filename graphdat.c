@@ -40,9 +40,9 @@
 #include "drupal7.h"
 
 // declare some helpers
-char* getRequestPath(size_t *slen TSRMLS_DC);
-char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC);
-void onRequestEnd(TSRMLS_D);
+static char* getRequestPath(size_t *slen TSRMLS_DC);
+static char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC);
+static void onRequestEnd(TSRMLS_D);
 
 #ifndef PHP_FE_END
 #ifdef ZEND_FE_END
@@ -192,7 +192,7 @@ PHP_FUNCTION(graphdat_end)
 
 ///// Helpers
 
-char* getRequestPath(size_t *slen TSRMLS_DC)
+static char* getRequestPath(size_t *slen TSRMLS_DC)
 {
     char * result;
     zval **requestUriData;
@@ -241,7 +241,7 @@ char* getRequestPath(size_t *slen TSRMLS_DC)
     return result;
 }
 
-char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC)
+static char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC)
 {
     char * result;
     zval **requestMethodData;
@@ -260,7 +260,7 @@ char* getRequestMethod(size_t *slen, char *fallback TSRMLS_DC)
 }
 
 
-void onRequestEnd(TSRMLS_D)
+static void onRequestEnd(TSRMLS_D)
 {
     endTimer(&GRAPHDAT_GLOBALS(timers), "");
     if(GRAPHDAT_GLOBALS(socketFD) == -1)
