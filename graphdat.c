@@ -33,7 +33,7 @@
 #include "php_graphdat.h"
 #include "sockets.h"
 #include "msgpack.h"
-#include "base64.h"
+#include "ext/standard/base64.h"
 #include "timers.h"
 #include <string.h>
 #include "magento.h"
@@ -357,9 +357,7 @@ void onRequestEnd(TSRMLS_D)
 
     if(GRAPHDAT_GLOBALS(debug))
     {
-        size_t b64len = 1 + BASE64_LENGTH (buffer->size);
-        char *b64str = emalloc(b64len);
-        base64_encode(buffer->data, buffer->size, b64str, b64len);
+        char *b64str = php_base64_encode(buffer->data, buffer->size, NULL);
         PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
         efree(b64str);
     }
