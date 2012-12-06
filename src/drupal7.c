@@ -13,8 +13,8 @@
 
 int hasDrupal7(TSRMLS_D)
 {
-	if(zend_hash_exists(EG(active_symbol_table), "menu_get_item", sizeof("menu_get_item")) 
-		&& zend_hash_exists(EG(active_symbol_table), "drupal_bootstrap", sizeof("drupal_bootstrap")) )
+	if(zend_hash_exists(EG(function_table), "menu_get_item", sizeof("menu_get_item")) 
+		&& zend_hash_exists(EG(function_table), "drupal_bootstrap", sizeof("drupal_bootstrap")) )
 	{
 		return 1;
 	}
@@ -25,8 +25,11 @@ char* getDrupal7Path(size_t *slen TSRMLS_DC)
 {
 	char* result;
 	zval retval;
-
-	if(zend_eval_string("$menu_item = menu_get_item($_GET['q']); return $menu_item['page_callback'];", &retval, "graphdat drupal7" TSRMLS_CC) == FAILURE)
+	if(zend_eval_string("$graphdat_menu_item = menu_get_item($_GET['q']);", NULL, "graphdat drupal7 p1" TSRMLS_CC) == FAILURE)
+	{
+		return NULL;
+	}
+	if(zend_eval_string("$graphdat_menu_item['page_callback'];", &retval, "graphdat drupal7 p2" TSRMLS_CC) == FAILURE)
 	{
 		return NULL;
 	}
