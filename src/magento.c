@@ -27,7 +27,7 @@ char* getMagentoPath(size_t *slen TSRMLS_DC)
 	char* result;
 	zval retval;
 	//if(zend_eval_string("Mage::app()->getFrontController()->getFullActionName();", &retval, "graphdat magento") == FAILURE)
-	if(zend_eval_string("Mage::app()->getRequest()->getRequestedRouteName().'::'.Mage::app()->getRequest()->getRequestedControllerName().'::'.Mage::app()->getRequest()->getRequestedActionName()", &retval, "graphdat magento") == FAILURE)
+	if(zend_eval_string("Mage::app()->getRequest()->getRequestedRouteName().'::'.Mage::app()->getRequest()->getRequestedControllerName().'::'.Mage::app()->getRequest()->getRequestedActionName()", &retval, "graphdat magento" TSRMLS_CC) == FAILURE)
 	{
 		return NULL;
 	}
