@@ -38,6 +38,7 @@
 #include <string.h>
 #include "magento.h"
 #include "drupal7.h"
+#include "joomla.h"
 
 // declare some helpers
 static char* getRequestPath(size_t *slen TSRMLS_DC);
@@ -214,6 +215,16 @@ static char* getRequestPath(size_t *slen TSRMLS_DC)
         if(result != NULL)
         {
             *slen = drupal7len;
+            return result;
+        }
+    }
+    if(hasJoomla(TSRMLS_C))
+    {
+        size_t joomlaLen;
+        result = getJoomlaPath(&joomlaLen TSRMLS_CC);
+        if(result != NULL)
+        {
+            *slen = joomlaLen;
             return result;
         }
     }
