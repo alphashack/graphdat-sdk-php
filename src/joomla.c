@@ -26,7 +26,7 @@ char* getJoomlaPath(size_t *slen TSRMLS_DC)
 {
     char* result;
     zval retval;
-    if(zend_eval_string("(isset($_REQUEST['option'] && $_REQUEST['view']) ?  ($_REQUEST['option'].'::'.$_REQUEST['view']) : NULL);", &retval, "graphdat magento" TSRMLS_CC) == FAILURE)
+    if(zend_eval_string("(isset($_REQUEST['option']) && isset($_REQUEST['view']) ?  ($_REQUEST['option'].'::'.$_REQUEST['view']) : NULL);", &retval, "graphdat joomla" TSRMLS_CC) == FAILURE)
     {
         return NULL;
     }
