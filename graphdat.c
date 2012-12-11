@@ -39,7 +39,8 @@
 #include "magento.h"
 #include "drupal7.h"
 #include "joomla.h"
-#include "wordpress.h"
+//#include "wordpress.h"
+#include "cake.h"
 
 // declare some helpers
 static char* getRequestPath(size_t *slen TSRMLS_DC);
@@ -211,6 +212,10 @@ static char* getRequestPath(size_t *slen TSRMLS_DC)
     else if(hasJoomla(TSRMLS_C))
     {
         result = getJoomlaPath(&pluginLen TSRMLS_CC);
+    }
+    else if(hasCake(TSRMLS_C))
+    {
+        result = getCakePath(&pluginLen TSRMLS_CC);
     }
     // disabled until we can get to the route info
     // else if(hasWordpress(TSRMLS_C))

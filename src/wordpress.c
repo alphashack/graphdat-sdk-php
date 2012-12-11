@@ -1,4 +1,4 @@
-#include "joomla.h"
+#include "wordpress.h"
 #include "ext/standard/php_var.h"
 #include "zend.h"
 
