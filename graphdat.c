@@ -212,10 +212,11 @@ static char* getRequestPath(size_t *slen TSRMLS_DC)
     {
         result = getJoomlaPath(&pluginLen TSRMLS_CC);
     }
-    else if(hasWordpress(TSRMLS_C))
-    {
-        result = getWordpressPath(&pluginLen TSRMLS_CC);
-    }
+    // disabled until we can get to the route info
+    // else if(hasWordpress(TSRMLS_C))
+    // {
+    //     result = getWordpressPath(&pluginLen TSRMLS_CC);
+    // }
     if(result != NULL)
     {
         *slen = pluginLen;
