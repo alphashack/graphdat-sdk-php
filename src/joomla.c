@@ -2,15 +2,8 @@
 #include "ext/standard/php_var.h"
 #include "zend.h"
 
-// This bit of code is to detect the presence of Magento
+// This bit of code is to detect the presence of Joomla
 // and extract the abstract path
-//
-// The class we're interested in will be
-// Mage_Core_Controller_Varien_Action
-// the current version of which is found at
-//  Mage::app()->getFrontController()
-// and then we call getFullActionName()
-// to get the abstract path
 
 int hasJoomla(TSRMLS_D)
 {

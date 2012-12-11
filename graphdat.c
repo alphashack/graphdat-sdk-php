@@ -39,6 +39,7 @@
 #include "magento.h"
 #include "drupal7.h"
 #include "joomla.h"
+#include "wordpress.h"
 
 // declare some helpers
 static char* getRequestPath(size_t *slen TSRMLS_DC);
@@ -196,37 +197,29 @@ PHP_FUNCTION(graphdat_end)
 static char* getRequestPath(size_t *slen TSRMLS_DC)
 {
     char * result;
+    size_t pluginLen;
     zval **requestUriData;
     int found = 1;
     if(hasMagento(TSRMLS_C))
     {
-        size_t magentoLen;
-        result = getMagentoPath(&magentoLen TSRMLS_CC);
-        if(result != NULL)
-        {
-            *slen = magentoLen;
-            return result;
-        }
+        result = getMagentoPath(&pluginLen TSRMLS_CC);
     }
-    if(hasDrupal7(TSRMLS_C))
+    else if(hasDrupal7(TSRMLS_C))
     {
-        size_t drupal7len;
-        result = getDrupal7Path(&drupal7len TSRMLS_CC);
-        if(result != NULL)
-        {
-            *slen = drupal7len;
-            return result;
-        }
+        result = getDrupal7Path(&pluginLen TSRMLS_CC);
     }
-    if(hasJoomla(TSRMLS_C))
+    else if(hasJoomla(TSRMLS_C))
     {
-        size_t joomlaLen;
-        result = getJoomlaPath(&joomlaLen TSRMLS_CC);
-        if(result != NULL)
-        {
-            *slen = joomlaLen;
-            return result;
-        }
+        result = getJoomlaPath(&pluginLen TSRMLS_CC);
+    }
+    else if(hasWordpress(TSRMLS_C))
+    {
+        result = getWordpressPath(&pluginLen TSRMLS_CC);
+    }
+    if(result != NULL)
+    {
+        *slen = pluginLen;
+        return result;
     }
     // looks like we can't do any magic
     zval *zServerVars = PG(http_globals)[TRACK_VARS_SERVER];
