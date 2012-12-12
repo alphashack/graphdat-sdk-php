@@ -41,6 +41,7 @@
 #include "joomla.h"
 //#include "wordpress.h"
 #include "cake.h"
+#include "zendplugin.h"
 
 // declare some helpers
 static char* getRequestPath(size_t *slen TSRMLS_DC);
