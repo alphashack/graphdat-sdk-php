@@ -355,21 +355,29 @@ static void onRequestEnd(TSRMLS_D)
     len[1] = buffer->size >> 16;
     len[2] = buffer->size >> 8;
     len[3] = buffer->size;
-    
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
-    size_t written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
-    if(written != buffer->size)
+    size_t written;
+    written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
+    if(written != 4)
     {
-        PRINTDEBUG("Mismatch: %d bytes written, %d bytes send to be written.\n", (uint) written, (uint) buffer->size);
+        // close and reopen in case there is a broken pipe
         closeSocket(GRAPHDAT_GLOBALS(socketFD));
         GRAPHDAT_GLOBALS(socketFD) = -1;
+        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
+        written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
     }
-
-    if(GRAPHDAT_GLOBALS(debug))
+    if(written == 4) 
     {
-        char *b64str = php_base64_encode(buffer->data, buffer->size, NULL);
-        PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
-        efree(b64str);
+        written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
+        if(written != buffer->size)
+        {
+          PRINTDEBUG("Mismatch: %d bytes written, %d bytes send to be written.\n", (uint) written, (uint) buffer->size);
+        }
+        else if(GRAPHDAT_GLOBALS(debug))
+        {
+          char *b64str = php_base64_encode(buffer->data, buffer->size, NULL);
+          PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
+          efree(b64str);
+        }
     }
 
     msgpack_sbuffer_free(buffer);
