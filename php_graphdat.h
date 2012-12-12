@@ -35,7 +35,20 @@ extern zend_module_entry graphdat_module_entry;
 #	define PHP_GRAPHDAT_API
 #endif
 
+typedef int (*pfnAvail)(TSRMLS_D);
+typedef char* (*pfnGetPath)(size_t *slen TSRMLS_DC);
 
+struct graphdat_plugin
+{
+    pfnAvail isAvailable;
+    pfnGetPath getPath;
+};
+
+struct graphdat_plugin_list
+{
+    int count;
+    struct graphdat_plugin *array;
+};
 
 PHP_MINIT_FUNCTION(graphdat);
 PHP_MSHUTDOWN_FUNCTION(graphdat);
@@ -60,6 +73,13 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
     int isDirty;
     struct timeval requestStart;
     struct graphdat_timer_list timers;
+    struct graphdat_plugin_list plugins;
+    // ini file items for plugins
+    int enable_joomla;
+    int enable_drupal;
+    int enable_magento;
+    int enable_cakephp;
+    int all_plugins_enabled;
 ZEND_END_MODULE_GLOBALS(graphdat)
 
 
