@@ -2,7 +2,7 @@
 #define GRAPHDAT_SOCKETS_H
 
 int openSocket(char *path, int port, int debug);
-void closeSocket(int sockfd);
+void closeSocket(int sockfd, int debug);
 int socketWrite(int sockfd, void* buf, int len, int debug);
 
 #endif

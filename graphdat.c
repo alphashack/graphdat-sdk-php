@@ -191,7 +191,7 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
     if(GRAPHDAT_GLOBALS(socketFD) != -1)
     {
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        closeSocket(GRAPHDAT_GLOBALS(socketFD), GRAPHDAT_GLOBALS(debug));
         GRAPHDAT_GLOBALS(socketFD) = -1;
     }
 
@@ -417,8 +417,9 @@ static void onRequestEnd(TSRMLS_D)
     if(written != 4)
     {
         // close and reopen in case there is a broken pipe
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        closeSocket(GRAPHDAT_GLOBALS(socketFD), GRAPHDAT_GLOBALS(debug));
         GRAPHDAT_GLOBALS(socketFD) = -1;
+        PRINTDEBUG("Retrying the write");
         GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
         written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
     }
