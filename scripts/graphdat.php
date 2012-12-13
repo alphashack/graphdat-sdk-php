@@ -17,7 +17,7 @@
     graphdat_end("validate module");
     //sleep(0.2);
     graphdat_begin("get info");
-    phpinfo(INFO_VARIABLES);
+    phpinfo();
     graphdat_end("get info");    
     //sleep(0.5);
 

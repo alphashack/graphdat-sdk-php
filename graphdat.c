@@ -41,6 +41,7 @@
 #include "joomla.h"
 //#include "wordpress.h"
 #include "cake.h"
+#include "zendplugin.h"
 
 // declare some helpers
 static char* getRequestPath(size_t *slen TSRMLS_DC);
@@ -99,9 +100,13 @@ ZEND_GET_MODULE(graphdat)
  * Grab values from the php.ini file
  */
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("graphdat.socketFile", "/tmp/gd.agent.sock", PHP_INI_ALL, OnUpdateString, socketFile, zend_graphdat_globals, graphdat_globals)
-    STD_PHP_INI_ENTRY("graphdat.socketPort", "26873", PHP_INI_ALL, OnUpdateLong, socketPort, zend_graphdat_globals, graphdat_globals)
-    STD_PHP_INI_ENTRY("graphdat.debug", "false", PHP_INI_ALL, OnUpdateBool, debug, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.socketFile", "/tmp/gd.agent.sock", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateString, socketFile, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.socketPort", "26873", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateLong, socketPort, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.debug", "false", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateBool, debug, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.enable_joomla", "false", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateBool, enable_joomla, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.enable_drupal", "false", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateBool, enable_drupal, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.enable_magento", "false", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateBool, enable_magento, zend_graphdat_globals, graphdat_globals)
+    STD_PHP_INI_ENTRY("graphdat.enable_cakephp", "false", PHP_INI_PERDIR|PHP_INI_SYSTEM, OnUpdateBool, enable_cakephp, zend_graphdat_globals, graphdat_globals)
 PHP_INI_END()
 
 /*
@@ -113,6 +118,59 @@ static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals TS
   graphdat_globals->socketFD = -1;
 }
 
+void setPlugins(TSRMLS_D)
+{
+    // work out what plugins are needed
+    if(!GRAPHDAT_GLOBALS(enable_joomla) && !GRAPHDAT_GLOBALS(enable_drupal) 
+        && !GRAPHDAT_GLOBALS(enable_magento) && !GRAPHDAT_GLOBALS(enable_cakephp) 
+        && !GRAPHDAT_GLOBALS(enable_zend))
+    {
+      // if none are enabled then we enable them all
+      GRAPHDAT_GLOBALS(enable_joomla) = 1;
+      GRAPHDAT_GLOBALS(enable_drupal) = 1;
+      GRAPHDAT_GLOBALS(enable_magento) = 1; 
+      GRAPHDAT_GLOBALS(enable_cakephp) = 1;
+      GRAPHDAT_GLOBALS(enable_zend) = 1;
+      GRAPHDAT_GLOBALS(all_plugins_enabled) = 1;
+    }
+
+    GRAPHDAT_GLOBALS(plugins).count = GRAPHDAT_GLOBALS(enable_joomla) + GRAPHDAT_GLOBALS(enable_drupal) 
+                                      + GRAPHDAT_GLOBALS(enable_magento) + GRAPHDAT_GLOBALS(enable_cakephp)
+                                      + GRAPHDAT_GLOBALS(enable_zend);
+    GRAPHDAT_GLOBALS(plugins).array = malloc(sizeof(struct graphdat_plugin) * GRAPHDAT_GLOBALS(plugins).count);
+    int index = 0;
+    if(GRAPHDAT_GLOBALS(enable_joomla))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasJoomla;
+      plugin->getPath = getJoomlaPath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_drupal))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasDrupal7;
+      plugin->getPath = getDrupal7Path;
+    }
+    if(GRAPHDAT_GLOBALS(enable_magento))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasMagento;
+      plugin->getPath = getMagentoPath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_cakephp))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasCake;
+      plugin->getPath = getCakePath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_zend))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasZend;
+      plugin->getPath = getZendPath;
+    }
+}
+
 /* 
  * What to do at module init
  */
@@ -120,6 +178,9 @@ PHP_MINIT_FUNCTION(graphdat)
 {
     ZEND_INIT_MODULE_GLOBALS(graphdat, php_graphdat_init_globals, NULL);
     REGISTER_INI_ENTRIES();
+
+    setPlugins(TSRMLS_C);
+
     return SUCCESS;
 }
 
@@ -130,7 +191,7 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
 {
     if(GRAPHDAT_GLOBALS(socketFD) != -1)
     {
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        closeSocket(GRAPHDAT_GLOBALS(socketFD), GRAPHDAT_GLOBALS(debug));
         GRAPHDAT_GLOBALS(socketFD) = -1;
     }
 
@@ -169,6 +230,13 @@ PHP_MINFO_FUNCTION(graphdat)
   php_info_print_table_end();
 
   DISPLAY_INI_ENTRIES();
+
+  if(GRAPHDAT_GLOBALS(all_plugins_enabled))
+  {
+    php_info_print_table_start();
+    php_info_print_table_header(1, "All plugins are enabled because none where chosen");
+    php_info_print_table_end();    
+  }
 }
 
 PHP_FUNCTION(graphdat_begin)
@@ -200,34 +268,23 @@ static char* getRequestPath(size_t *slen TSRMLS_DC)
     char * result;
     size_t pluginLen;
     zval **requestUriData;
-    int found = 1;
-    if(hasMagento(TSRMLS_C))
+    int count = GRAPHDAT_GLOBALS(plugins).count;
+    int i;
+    for(i=0; i < count && result == NULL; i++)
     {
-        result = getMagentoPath(&pluginLen TSRMLS_CC);
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[i];
+      if(plugin->isAvailable(TSRMLS_C))
+      {
+        result = plugin->getPath(&pluginLen TSRMLS_CC);
+      }
     }
-    else if(hasDrupal7(TSRMLS_C))
-    {
-        result = getDrupal7Path(&pluginLen TSRMLS_CC);
-    }
-    else if(hasJoomla(TSRMLS_C))
-    {
-        result = getJoomlaPath(&pluginLen TSRMLS_CC);
-    }
-    else if(hasCake(TSRMLS_C))
-    {
-        result = getCakePath(&pluginLen TSRMLS_CC);
-    }
-    // disabled until we can get to the route info
-    // else if(hasWordpress(TSRMLS_C))
-    // {
-    //     result = getWordpressPath(&pluginLen TSRMLS_CC);
-    // }
     if(result != NULL)
     {
         *slen = pluginLen;
         return result;
     }
     // looks like we can't do any magic
+    int found = 1;
     zval *zServerVars = PG(http_globals)[TRACK_VARS_SERVER];
     // the server globals should never be null....
     if(zServerVars == NULL)
@@ -355,21 +412,30 @@ static void onRequestEnd(TSRMLS_D)
     len[1] = buffer->size >> 16;
     len[2] = buffer->size >> 8;
     len[3] = buffer->size;
-    
-    socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
-    size_t written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
-    if(written != buffer->size)
+    size_t written;
+    written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
+    if(written != 4)
     {
-        PRINTDEBUG("Mismatch: %d bytes written, %d bytes send to be written.\n", (uint) written, (uint) buffer->size);
-        closeSocket(GRAPHDAT_GLOBALS(socketFD));
+        // close and reopen in case there is a broken pipe
+        closeSocket(GRAPHDAT_GLOBALS(socketFD), GRAPHDAT_GLOBALS(debug));
         GRAPHDAT_GLOBALS(socketFD) = -1;
+        PRINTDEBUG("Retrying the write");
+        GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
+        written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
     }
-
-    if(GRAPHDAT_GLOBALS(debug))
+    if(written == 4) 
     {
-        char *b64str = php_base64_encode(buffer->data, buffer->size, NULL);
-        PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
-        efree(b64str);
+        written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
+        if(written != buffer->size)
+        {
+          PRINTDEBUG("Mismatch: %d bytes written, %d bytes send to be written.\n", (uint) written, (uint) buffer->size);
+        }
+        else if(GRAPHDAT_GLOBALS(debug))
+        {
+          char *b64str = php_base64_encode(buffer->data, buffer->size, NULL);
+          PRINTDEBUG("Sent %d bytes: %s\n", (int) buffer->size, b64str);
+          efree(b64str);
+        }
     }
 
     msgpack_sbuffer_free(buffer);
