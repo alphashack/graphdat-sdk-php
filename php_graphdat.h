@@ -79,6 +79,7 @@ ZEND_BEGIN_MODULE_GLOBALS(graphdat)
     int enable_drupal;
     int enable_magento;
     int enable_cakephp;
+    int enable_zend;
     int all_plugins_enabled;
 ZEND_END_MODULE_GLOBALS(graphdat)
 

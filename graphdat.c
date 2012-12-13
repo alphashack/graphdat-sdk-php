@@ -121,44 +121,53 @@ static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals TS
 void setPlugins(TSRMLS_D)
 {
     // work out what plugins are needed
-    if(!GRAPHDAT_GLOBALS(enable_joomla) && !GRAPHDAT_GLOBALS(enable_drupal) && !GRAPHDAT_GLOBALS(enable_magento) && !GRAPHDAT_GLOBALS(enable_cakephp))
+    if(!GRAPHDAT_GLOBALS(enable_joomla) && !GRAPHDAT_GLOBALS(enable_drupal) 
+        && !GRAPHDAT_GLOBALS(enable_magento) && !GRAPHDAT_GLOBALS(enable_cakephp) 
+        && !GRAPHDAT_GLOBALS(enable_zend))
     {
       // if none are enabled then we enable them all
       GRAPHDAT_GLOBALS(enable_joomla) = 1;
       GRAPHDAT_GLOBALS(enable_drupal) = 1;
       GRAPHDAT_GLOBALS(enable_magento) = 1; 
       GRAPHDAT_GLOBALS(enable_cakephp) = 1;
+      GRAPHDAT_GLOBALS(enable_zend) = 1;
       GRAPHDAT_GLOBALS(all_plugins_enabled) = 1;
     }
-    else
+
+    GRAPHDAT_GLOBALS(plugins).count = GRAPHDAT_GLOBALS(enable_joomla) + GRAPHDAT_GLOBALS(enable_drupal) 
+                                      + GRAPHDAT_GLOBALS(enable_magento) + GRAPHDAT_GLOBALS(enable_cakephp)
+                                      + GRAPHDAT_GLOBALS(enable_zend);
+    GRAPHDAT_GLOBALS(plugins).array = malloc(sizeof(struct graphdat_plugin) * GRAPHDAT_GLOBALS(plugins).count);
+    int index = 0;
+    if(GRAPHDAT_GLOBALS(enable_joomla))
     {
-      GRAPHDAT_GLOBALS(plugins).count = GRAPHDAT_GLOBALS(enable_joomla) + GRAPHDAT_GLOBALS(enable_drupal) + GRAPHDAT_GLOBALS(enable_magento) + GRAPHDAT_GLOBALS(enable_cakephp);
-      GRAPHDAT_GLOBALS(plugins).array = malloc(sizeof(struct graphdat_plugin) * GRAPHDAT_GLOBALS(plugins).count);
-      int index = 0;
-      if(GRAPHDAT_GLOBALS(enable_joomla))
-      {
-        struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
-        plugin->isAvailable = hasJoomla;
-        plugin->getPath = getJoomlaPath;
-      }
-      if(GRAPHDAT_GLOBALS(enable_drupal))
-      {
-        struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
-        plugin->isAvailable = hasDrupal7;
-        plugin->getPath = getDrupal7Path;
-      }
-      if(GRAPHDAT_GLOBALS(enable_magento))
-      {
-        struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
-        plugin->isAvailable = hasMagento;
-        plugin->getPath = getMagentoPath;
-      }
-      if(GRAPHDAT_GLOBALS(enable_cakephp))
-      {
-        struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
-        plugin->isAvailable = hasCake;
-        plugin->getPath = getCakePath;
-      }
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasJoomla;
+      plugin->getPath = getJoomlaPath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_drupal))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasDrupal7;
+      plugin->getPath = getDrupal7Path;
+    }
+    if(GRAPHDAT_GLOBALS(enable_magento))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasMagento;
+      plugin->getPath = getMagentoPath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_cakephp))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasCake;
+      plugin->getPath = getCakePath;
+    }
+    if(GRAPHDAT_GLOBALS(enable_zend))
+    {
+      struct graphdat_plugin *plugin = &GRAPHDAT_GLOBALS(plugins).array[index++];
+      plugin->isAvailable = hasZend;
+      plugin->getPath = getZendPath;
     }
 }
 
