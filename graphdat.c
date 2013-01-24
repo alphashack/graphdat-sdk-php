@@ -285,6 +285,9 @@ static char* getRequestPath(size_t *slen TSRMLS_DC)
     }
     // looks like we can't do any magic
     int found = 1;
+    if (PG(auto_globals_jit)) {
+      zend_is_auto_global("_SERVER", sizeof("_SERVER")-1 TSRMLS_CC);
+    }
     zval *zServerVars = PG(http_globals)[TRACK_VARS_SERVER];
     // the server globals should never be null....
     if(zServerVars == NULL)
