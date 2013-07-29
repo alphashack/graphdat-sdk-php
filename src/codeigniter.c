@@ -8,7 +8,7 @@
 int hasCodeigniter(TSRMLS_D)
 {
     if(zend_hash_exists(EG(class_table), "ci_router", sizeof("ci_router")) 
-        && zend_hash_exists(EG(class_table), "router", sizeof("router")) )
+        && zend_hash_exists(EG(class_table), "ci_config", sizeof("ci_config")) )
     {
         return 1;
     }
