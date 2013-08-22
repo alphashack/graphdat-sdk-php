@@ -136,8 +136,16 @@ void endTimer(struct graphdat_timer_list* timerList, char *name)
     }
     if(strcmp(timerList->array[timerList->currentIndex].name, name) != 0)
     {
-        zend_error(E_ERROR, "Could not end timer named '%s' since it's not the last timer to begin.", name);
-        return;
+        if (strcmp(name, "") != 0)
+        {
+        	zend_error(E_ERROR, "Could not end timer named '%s' since it's not the last timer to begin.", name);
+        	return;
+        }
+
+        while(strcmp(timerList->array[timerList->currentIndex].name, name) != 0)
+        {
+        	endTimer(timerList, timerList->array[timerList->currentIndex].name);
+        }
     }
     struct timeval timeNow;
     struct graphdat_timer *timer = (struct graphdat_timer*) &timerList->array[timerList->currentIndex];

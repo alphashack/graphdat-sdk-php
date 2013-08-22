@@ -205,8 +205,8 @@ PHP_MSHUTDOWN_FUNCTION(graphdat)
 PHP_RINIT_FUNCTION(graphdat)
 {
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
-    initTimerList(8, &GRAPHDAT_GLOBALS(timers));
     freeTimerList(&GRAPHDAT_GLOBALS(timers));
+    initTimerList(8, &GRAPHDAT_GLOBALS(timers));
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
     return SUCCESS;
 }
