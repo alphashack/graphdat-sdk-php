@@ -61,7 +61,7 @@ ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 /* True global resources - no need for thread safety here */
 static int le_graphdat;
 
-/* 
+/*
  * Every user visible function must have an entry in graphdat_functions[].
  */
 const zend_function_entry graphdat_functions[] = {
@@ -71,7 +71,7 @@ const zend_function_entry graphdat_functions[] = {
 };
 
 
-/* 
+/*
  * this bit lets zend know what's happening
  */
 zend_module_entry graphdat_module_entry = {
@@ -96,7 +96,7 @@ zend_module_entry graphdat_module_entry = {
 ZEND_GET_MODULE(graphdat)
 #endif
 
-/* 
+/*
  * Grab values from the php.ini file
  */
 PHP_INI_BEGIN()
@@ -121,20 +121,20 @@ static void php_graphdat_init_globals(zend_graphdat_globals *graphdat_globals TS
 void setPlugins(TSRMLS_D)
 {
     // work out what plugins are needed
-    if(!GRAPHDAT_GLOBALS(enable_joomla) && !GRAPHDAT_GLOBALS(enable_drupal) 
-        && !GRAPHDAT_GLOBALS(enable_magento) && !GRAPHDAT_GLOBALS(enable_cakephp) 
+    if(!GRAPHDAT_GLOBALS(enable_joomla) && !GRAPHDAT_GLOBALS(enable_drupal)
+        && !GRAPHDAT_GLOBALS(enable_magento) && !GRAPHDAT_GLOBALS(enable_cakephp)
         && !GRAPHDAT_GLOBALS(enable_zend))
     {
       // if none are enabled then we enable them all
       GRAPHDAT_GLOBALS(enable_joomla) = 1;
       GRAPHDAT_GLOBALS(enable_drupal) = 1;
-      GRAPHDAT_GLOBALS(enable_magento) = 1; 
+      GRAPHDAT_GLOBALS(enable_magento) = 1;
       GRAPHDAT_GLOBALS(enable_cakephp) = 1;
       GRAPHDAT_GLOBALS(enable_zend) = 1;
       GRAPHDAT_GLOBALS(all_plugins_enabled) = 1;
     }
 
-    GRAPHDAT_GLOBALS(plugins).count = GRAPHDAT_GLOBALS(enable_joomla) + GRAPHDAT_GLOBALS(enable_drupal) 
+    GRAPHDAT_GLOBALS(plugins).count = GRAPHDAT_GLOBALS(enable_joomla) + GRAPHDAT_GLOBALS(enable_drupal)
                                       + GRAPHDAT_GLOBALS(enable_magento) + GRAPHDAT_GLOBALS(enable_cakephp)
                                       + GRAPHDAT_GLOBALS(enable_zend);
     GRAPHDAT_GLOBALS(plugins).array = malloc(sizeof(struct graphdat_plugin) * GRAPHDAT_GLOBALS(plugins).count);
@@ -171,7 +171,7 @@ void setPlugins(TSRMLS_D)
     }
 }
 
-/* 
+/*
  * What to do at module init
  */
 PHP_MINIT_FUNCTION(graphdat)
@@ -184,7 +184,7 @@ PHP_MINIT_FUNCTION(graphdat)
     return SUCCESS;
 }
 
-/* 
+/*
  * What to do at module destruct
  */
 PHP_MSHUTDOWN_FUNCTION(graphdat)
@@ -206,11 +206,12 @@ PHP_RINIT_FUNCTION(graphdat)
 {
     gettimeofday(&GRAPHDAT_GLOBALS(requestStart), NULL);
     initTimerList(8, &GRAPHDAT_GLOBALS(timers));
+    freeTimerList(&GRAPHDAT_GLOBALS(timers));
     beginTimer(&GRAPHDAT_GLOBALS(timers), "", GRAPHDAT_GLOBALS(requestStart));
     return SUCCESS;
 }
 
-/* 
+/*
  * What to do at request end
  */
 PHP_RSHUTDOWN_FUNCTION(graphdat)
@@ -235,7 +236,7 @@ PHP_MINFO_FUNCTION(graphdat)
   {
     php_info_print_table_start();
     php_info_print_table_header(1, "All plugins are enabled because none where chosen");
-    php_info_print_table_end();    
+    php_info_print_table_end();
   }
 }
 
@@ -352,7 +353,7 @@ static void onRequestEnd(TSRMLS_D)
     struct timeval timeNow;
 
     double totalTime = totalResponseTime(&GRAPHDAT_GLOBALS(timers));
-    
+
     requestUri = getRequestPath(&requestUriLen TSRMLS_CC);
     if(requestUri == NULL)
     {
@@ -365,9 +366,9 @@ static void onRequestEnd(TSRMLS_D)
     requestLineItemLen = requestUriLen + requestMethodLen + 2;
     requestLineItem = emalloc(requestLineItemLen);
     sprintf(requestLineItem, "%s %s", requestMethod, requestUri);
-    
+
     PRINTDEBUG("Request %s took %fms\n", requestLineItem, totalTime);
-    
+
     msgpack_sbuffer* buffer = msgpack_sbuffer_new();
     msgpack_sbuffer_init(buffer);
     msgpack_packer* pk = msgpack_packer_new(buffer, msgpack_sbuffer_write);
@@ -409,7 +410,7 @@ static void onRequestEnd(TSRMLS_D)
     msgpack_pack_raw(pk, sizeof("context") - 1);
     msgpack_pack_raw_body(pk, "context", sizeof("context") - 1);
     outputTimersToMsgPack(pk, &GRAPHDAT_GLOBALS(timers));
-    
+
     unsigned char len[4];
     len[0] = buffer->size >> 24;
     len[1] = buffer->size >> 16;
@@ -426,7 +427,7 @@ static void onRequestEnd(TSRMLS_D)
         GRAPHDAT_GLOBALS(socketFD) = openSocket(GRAPHDAT_GLOBALS(socketFile), (int) GRAPHDAT_GLOBALS(socketPort), GRAPHDAT_GLOBALS(debug));
         written = socketWrite(GRAPHDAT_GLOBALS(socketFD), &len, 4, GRAPHDAT_GLOBALS(debug));
     }
-    if(written == 4) 
+    if(written == 4)
     {
         written = socketWrite(GRAPHDAT_GLOBALS(socketFD), buffer->data, buffer->size, GRAPHDAT_GLOBALS(debug));
         if(written != buffer->size)
