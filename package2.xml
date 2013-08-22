@@ -14,19 +14,18 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>support@graphdat.com</email>
   <active>yes</active>
  </lead>
- <date>2012-12-17</date>
- <time>00:26:04</time>
+ <date>2013-08-22</date>
+ <time>00:43:04</time>
  <version>
-  <release>0.3.0</release>
-  <api>0.3.0</api>
+  <release>1.0.0</release>
+  <api>1.0.0</api>
  </version>
  <stability>
-  <release>beta</release>
-  <api>beta</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
- <license uri="http://www.opensource.org/licenses/mit-license.php">MIT</license>
- <notes>
-Preliminary release, linux based platforms only
+ <license uri="http://opensource.org/licenses/Apache-2.0">Apache-2.0</license>
+ <notes>Stable release, linux based platforms only
  </notes>
  <contents>
   <dir name="/">
