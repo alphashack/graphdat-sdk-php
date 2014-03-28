@@ -1,5 +1,8 @@
-graphdat-sdk-php
-================
+# Graphdat PHP SDK
+
+*PHP Extension for Graphdat*
+
+--
 
 PHP Extension for graphdat. To find out more about graphdat visit http://dashboard.graphdat.com/landing
 
