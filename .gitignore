@@ -34,3 +34,8 @@
 /Makefile.fragments
 /Makefile.objects
 /.libs/
+/.cproject
+/config.log
+/build/
+/.project
+/.DS_Store
