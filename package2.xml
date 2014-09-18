@@ -14,11 +14,11 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>support@graphdat.com</email>
   <active>yes</active>
  </lead>
- <date>2013-09-1</date>
+ <date>2014-09-18</date>
  <time>10:57:10</time>
  <version>
-  <release>1.0.2</release>
-  <api>1.0.2</api>
+  <release>1.0.3</release>
+  <api>1.0.3</api>
  </version>
  <stability>
   <release>stable</release>
