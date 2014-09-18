@@ -14,8 +14,8 @@
   </maintainer>
   </maintainers>
  <release>
-  <version>1.0.2</version>
-  <date>2013-09-11</date>
+  <version>1.0.3</version>
+  <date>2014-09-18</date>
   <license>Apache-2.0</license>
   <state>stable</state>
   <notes>Stable release, linux based platforms only
