@@ -228,6 +228,8 @@ PHP_MINFO_FUNCTION(graphdat)
 {
   php_info_print_table_start();
   php_info_print_table_header(2, "graphdat", "enabled");
+  php_info_print_table_header(2, "msgpack headers version", MSGPACK_VERSION);
+  php_info_print_table_header(2, "msgpack library version", msgpack_version());
   php_info_print_table_end();
 
   DISPLAY_INI_ENTRIES();
