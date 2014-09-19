@@ -61,12 +61,16 @@ ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 /* True global resources - no need for thread safety here */
 static int le_graphdat;
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_graphdat_name, 0, 0, 1)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
 /*
  * Every user visible function must have an entry in graphdat_functions[].
  */
 const zend_function_entry graphdat_functions[] = {
-    PHP_FE(graphdat_begin, NULL)
-    PHP_FE(graphdat_end, NULL)
+    PHP_FE(graphdat_begin, arginfo_graphdat_name)
+    PHP_FE(graphdat_end,   arginfo_graphdat_name)
     PHP_FE_END  /* Must be the last line in graphdat_functions[] */
 };
 
