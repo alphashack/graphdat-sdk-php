@@ -86,7 +86,7 @@ zend_module_entry graphdat_module_entry = {
   PHP_RSHUTDOWN(graphdat),  /* Replace with NULL if there's nothing to do at request end */
   PHP_MINFO(graphdat),
 #if ZEND_MODULE_API_NO >= 20010901
-  "0.1", /* Replace with version number for your extension */
+  PHP_GRAPHDAT_VERSION,
 #endif
   STANDARD_MODULE_PROPERTIES
 };
@@ -228,6 +228,7 @@ PHP_MINFO_FUNCTION(graphdat)
 {
   php_info_print_table_start();
   php_info_print_table_header(2, "graphdat", "enabled");
+  php_info_print_table_header(2, "graphdat extension version", PHP_GRAPHDAT_VERSION);
   php_info_print_table_header(2, "msgpack headers version", MSGPACK_VERSION);
   php_info_print_table_header(2, "msgpack library version", msgpack_version());
   php_info_print_table_end();

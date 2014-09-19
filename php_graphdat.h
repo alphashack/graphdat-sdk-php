@@ -21,6 +21,8 @@
 #ifndef PHP_GRAPHDAT_H
 #define PHP_GRAPHDAT_H
 
+#define PHP_GRAPHDAT_VERSION "1.0.3"
+
 #include <sys/time.h>
 #include "timers.h"
 

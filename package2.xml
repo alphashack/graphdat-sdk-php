@@ -17,6 +17,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
  <date>2014-09-18</date>
  <time>10:57:10</time>
  <version>
+  <!-- remember to check PHP_GRAPHDAT_VERSION in php_graphdat.h before release -->
   <release>1.0.3</release>
   <api>1.0.3</api>
  </version>
