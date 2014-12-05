@@ -266,7 +266,7 @@ PHP_FUNCTION(graphdat_end)
 
 static char* getRequestPath(size_t *slen TSRMLS_DC)
 {
-    char * result;
+    char * result = NULL;
     size_t pluginLen;
     zval **requestUriData;
     int count = GRAPHDAT_GLOBALS(plugins).count;
