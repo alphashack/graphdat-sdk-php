@@ -24,8 +24,8 @@ Steps to use PECL to install the extension
 * Downloaded and extract the latest tarball (https://github.com/alphashack/graphdat-sdk-php/archive/master.zip)
 * Update the date in package2.xml to today
 * Run `pecl package`
-* If you are building on an older 32-bit x86 system, e.g. CentOS or Redhat 5, run `CFLAGS=-march=i686 pecl install graphdat-1.0.3.tgz`
-* Otherwise, run `pecl install graphdat-1.0.3.tgz`
+* If you are building on an older 32-bit x86 system, e.g. CentOS or Redhat 5, run `CFLAGS=-march=i686 pecl install graphdat-1.0.4.tgz`
+* Otherwise, run `pecl install graphdat-1.0.4.tgz`
 
 The extension is now installed and will need to be enabled. Adding the following line to your php.ini file
 
