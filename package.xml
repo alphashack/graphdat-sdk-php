@@ -14,7 +14,7 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>support@graphdat.com</email>
   <active>yes</active>
  </lead>
- <date>2014-12-5</date>
+ <date>2014-12-05</date>
  <time>21:16:00</time>
  <version>
   <!-- remember to check PHP_GRAPHDAT_VERSION in php_graphdat.h before release -->
