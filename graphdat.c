@@ -32,7 +32,7 @@
 #include "ext/standard/info.h"
 #include "php_graphdat.h"
 #include "sockets.h"
-#include "msgpack.h"
+#include <msgpack.h>
 #include "ext/standard/base64.h"
 #include "timers.h"
 #include <string.h>
@@ -61,12 +61,16 @@ ZEND_DECLARE_MODULE_GLOBALS(graphdat)
 /* True global resources - no need for thread safety here */
 static int le_graphdat;
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_graphdat_name, 0, 0, 1)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
 /*
  * Every user visible function must have an entry in graphdat_functions[].
  */
 const zend_function_entry graphdat_functions[] = {
-    PHP_FE(graphdat_begin, NULL)
-    PHP_FE(graphdat_end, NULL)
+    PHP_FE(graphdat_begin, arginfo_graphdat_name)
+    PHP_FE(graphdat_end,   arginfo_graphdat_name)
     PHP_FE_END  /* Must be the last line in graphdat_functions[] */
 };
 
@@ -86,7 +90,7 @@ zend_module_entry graphdat_module_entry = {
   PHP_RSHUTDOWN(graphdat),  /* Replace with NULL if there's nothing to do at request end */
   PHP_MINFO(graphdat),
 #if ZEND_MODULE_API_NO >= 20010901
-  "0.1", /* Replace with version number for your extension */
+  PHP_GRAPHDAT_VERSION,
 #endif
   STANDARD_MODULE_PROPERTIES
 };
@@ -228,6 +232,9 @@ PHP_MINFO_FUNCTION(graphdat)
 {
   php_info_print_table_start();
   php_info_print_table_header(2, "graphdat", "enabled");
+  php_info_print_table_header(2, "graphdat extension version", PHP_GRAPHDAT_VERSION);
+  php_info_print_table_header(2, "msgpack headers version", MSGPACK_VERSION);
+  php_info_print_table_header(2, "msgpack library version", msgpack_version());
   php_info_print_table_end();
 
   DISPLAY_INI_ENTRIES();
