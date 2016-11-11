@@ -2,6 +2,8 @@
 
 *PHP Extension for Graphdat*
 
+## DEPRECATED - This is now longer in use or supported.
+
 --
 
 PHP Extension for graphdat. To find out more about graphdat visit http://dashboard.graphdat.com/landing
